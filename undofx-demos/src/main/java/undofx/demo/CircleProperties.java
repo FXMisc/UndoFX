@@ -1,0 +1,183 @@
+package undofx.demo;
+
+import static reactfx.EventStreams.*;
+
+import java.util.Optional;
+
+import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Circle;
+import javafx.stage.Stage;
+import reactfx.Change;
+import reactfx.EventStream;
+import undofx.UndoManager;
+import undofx.UndoManagerFactory;
+
+public class CircleProperties extends Application {
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    private abstract class CircleChange<T> {
+        protected final T oldValue;
+        protected final T newValue;
+
+        protected CircleChange(T oldValue, T newValue) {
+            this.oldValue = oldValue;
+            this.newValue = newValue;
+        }
+
+        abstract void redo();
+        abstract void undo();
+
+        Optional<CircleChange<?>> mergeWith(CircleChange<?> other) {
+            // don't merge changes by default
+            return Optional.empty();
+        }
+    };
+
+    private class ColorChange extends CircleChange<Color> {
+        public ColorChange(Change<Paint> c) {
+            super((Color) c.getOldValue(), (Color) c.getNewValue());
+        }
+        @Override void redo() { colorPicker.setValue(newValue); }
+        @Override void undo() { colorPicker.setValue(oldValue); }
+    }
+
+    private class RadiusChange extends CircleChange<Double> {
+        public RadiusChange(Double oldValue, Double newValue) {
+            super(oldValue, newValue);
+        }
+        public RadiusChange(Change<Number> c) {
+            super(c.getOldValue().doubleValue(), c.getNewValue().doubleValue());
+        }
+        @Override void redo() { radius.setValue(newValue); }
+        @Override void undo() { radius.setValue(oldValue); }
+        @Override Optional<CircleChange<?>> mergeWith(CircleChange<?> other) {
+            if(other instanceof RadiusChange) {
+                return Optional.of(new RadiusChange(oldValue, ((RadiusChange) other).newValue));
+            } else {
+                return Optional.empty();
+            }
+        }
+    }
+
+    private class CenterXChange extends CircleChange<Double> {
+        public CenterXChange(Double oldValue, Double newValue) {
+            super(oldValue, newValue);
+        }
+        public CenterXChange(Change<Number> c) {
+            super(c.getOldValue().doubleValue(), c.getNewValue().doubleValue());
+        }
+        @Override void redo() { centerX.setValue(newValue); }
+        @Override void undo() { centerX.setValue(oldValue); }
+        @Override Optional<CircleChange<?>> mergeWith(CircleChange<?> other) {
+            if(other instanceof CenterXChange) {
+                return Optional.of(new CenterXChange(oldValue, ((CenterXChange) other).newValue));
+            } else {
+                return Optional.empty();
+            }
+        }
+    }
+
+    private class CenterYChange extends CircleChange<Double> {
+        public CenterYChange(Double oldValue, Double newValue) {
+            super(oldValue, newValue);
+        }
+        public CenterYChange(Change<Number> c) {
+            super(c.getOldValue().doubleValue(), c.getNewValue().doubleValue());
+        }
+        @Override void redo() { centerY.setValue(newValue); }
+        @Override void undo() { centerY.setValue(oldValue); }
+        @Override Optional<CircleChange<?>> mergeWith(CircleChange<?> other) {
+            if(other instanceof CenterYChange) {
+                return Optional.of(new CenterYChange(oldValue, ((CenterYChange) other).newValue));
+            } else {
+                return Optional.empty();
+            }
+        }
+    }
+
+    private final Circle circle = new Circle();
+    private final ColorPicker colorPicker = new ColorPicker(Color.RED);
+    private final Slider radius = new Slider(10, 200, 40);
+    private final Slider centerX = new Slider(0, 400, 200);
+    private final Slider centerY = new Slider(0, 400, 200);
+
+    {
+        circle.fillProperty().bind(colorPicker.valueProperty());
+        circle.radiusProperty().bind(radius.valueProperty());
+        circle.centerXProperty().bind(centerX.valueProperty());
+        circle.centerYProperty().bind(centerY.valueProperty());
+    }
+
+    private final EventStream<CircleChange<?>> changes;
+    {
+        EventStream<ColorChange> colorChanges = changesOf(circle.fillProperty()).map(c -> new ColorChange(c));
+        EventStream<RadiusChange> radiusChanges = changesOf(circle.radiusProperty()).map(c -> new RadiusChange(c));
+        EventStream<CenterXChange> centerXChanges = changesOf(circle.centerXProperty()).map(c -> new CenterXChange(c));
+        EventStream<CenterYChange> centerYChanges = changesOf(circle.centerYProperty()).map(c -> new CenterYChange(c));
+        changes = merge(colorChanges, radiusChanges, centerXChanges, centerYChanges);
+    }
+
+    private final UndoManager undoManager =
+            UndoManagerFactory.unlimitedHistoryUndoManager(
+                    changes, // stream of changes to observe
+                    c -> c.redo(), // function to redo a change
+                    c -> c.undo(), // function to undo a change
+                    (c1, c2) -> c1.mergeWith(c2)); // function to merge two changes
+
+    private final Button undoBtn = new Button("Undo");
+    private final Button redoBtn = new Button("Redo");
+    {
+        undoBtn.disableProperty().bind(Bindings.not(undoManager.undoAvailableProperty()));
+        redoBtn.disableProperty().bind(Bindings.not(undoManager.redoAvailableProperty()));
+        undoBtn.setOnAction(evt -> undoManager.undo());
+        redoBtn.setOnAction(evt -> undoManager.redo());
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        Pane pane = new Pane();
+        pane.setPrefWidth(400);
+        pane.setPrefHeight(400);
+        pane.getChildren().add(circle);
+
+        HBox undoPanel = new HBox(20.0, undoBtn, redoBtn);
+
+        VBox root = new VBox(10.0,
+                pane,
+                labeled("Color", colorPicker),
+                labeled("Radius", radius),
+                labeled("X", centerX),
+                labeled("Y", centerY),
+                undoPanel);
+        root.setAlignment(Pos.CENTER);
+        root.setFillWidth(false);
+
+        Scene scene = new Scene(root);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private static HBox labeled(String labelText, Node node) {
+        Label label = new Label(labelText);
+        label.setStyle("-fx-font-weight: bold;");
+        HBox hbox = new HBox(15, label, node);
+        hbox.setAlignment(Pos.CENTER);
+        return hbox;
+    }
+}
