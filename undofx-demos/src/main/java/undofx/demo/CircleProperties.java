@@ -116,33 +116,29 @@ public class CircleProperties extends Application {
     private final Slider radius = new Slider(10, 200, 40);
     private final Slider centerX = new Slider(0, 400, 200);
     private final Slider centerY = new Slider(0, 400, 200);
+    private final Button undoBtn = new Button("Undo");
+    private final Button redoBtn = new Button("Redo");
+    private final EventStream<CircleChange<?>> changes;
+    private final UndoManager undoManager;
 
     {
         circle.fillProperty().bind(colorPicker.valueProperty());
         circle.radiusProperty().bind(radius.valueProperty());
         circle.centerXProperty().bind(centerX.valueProperty());
         circle.centerYProperty().bind(centerY.valueProperty());
-    }
 
-    private final EventStream<CircleChange<?>> changes;
-    {
         EventStream<ColorChange> colorChanges = changesOf(circle.fillProperty()).map(c -> new ColorChange(c));
         EventStream<RadiusChange> radiusChanges = changesOf(circle.radiusProperty()).map(c -> new RadiusChange(c));
         EventStream<CenterXChange> centerXChanges = changesOf(circle.centerXProperty()).map(c -> new CenterXChange(c));
         EventStream<CenterYChange> centerYChanges = changesOf(circle.centerYProperty()).map(c -> new CenterYChange(c));
         changes = merge(colorChanges, radiusChanges, centerXChanges, centerYChanges);
-    }
 
-    private final UndoManager undoManager =
-            UndoManagerFactory.unlimitedHistoryUndoManager(
+        undoManager = UndoManagerFactory.unlimitedHistoryUndoManager(
                     changes, // stream of changes to observe
                     c -> c.redo(), // function to redo a change
                     c -> c.undo(), // function to undo a change
                     (c1, c2) -> c1.mergeWith(c2)); // function to merge two changes
 
-    private final Button undoBtn = new Button("Undo");
-    private final Button redoBtn = new Button("Redo");
-    {
         undoBtn.disableProperty().bind(Bindings.not(undoManager.undoAvailableProperty()));
         redoBtn.disableProperty().bind(Bindings.not(undoManager.redoAvailableProperty()));
         undoBtn.setOnAction(evt -> undoManager.undo());
