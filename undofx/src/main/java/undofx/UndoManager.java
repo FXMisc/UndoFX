@@ -23,7 +23,6 @@ public interface UndoManager {
 
     /**
      * Indicates whether there is a change that can be redone.
-     * @return
      */
     ObservableBooleanValue redoAvailableProperty();
     boolean isRedoAvailable();
