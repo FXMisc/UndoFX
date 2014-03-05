@@ -6,10 +6,12 @@ import java.util.function.Consumer;
 
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
-import reactfx.EventStream;
-import reactfx.Hold;
-import reactfx.Indicator;
-import reactfx.Subscription;
+
+import org.reactfx.EventStream;
+import org.reactfx.Hold;
+import org.reactfx.Indicator;
+import org.reactfx.Subscription;
+
 import undofx.UndoManager;
 
 public class UndoManagerImpl<C> implements UndoManager {

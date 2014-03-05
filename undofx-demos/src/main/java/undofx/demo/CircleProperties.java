@@ -1,6 +1,6 @@
 package undofx.demo;
 
-import static reactfx.EventStreams.*;
+import static org.reactfx.EventStreams.*;
 
 import java.util.Optional;
 
@@ -20,8 +20,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
-import reactfx.Change;
-import reactfx.EventStream;
+
+import org.reactfx.Change;
+import org.reactfx.EventStream;
+
 import undofx.UndoManager;
 import undofx.UndoManagerFactory;
 

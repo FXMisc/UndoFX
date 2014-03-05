@@ -1,29 +1,6 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'de.undercouch:gradle-download-task:0.4'
-    }
-}
-
-apply plugin: 'download-task'
-
-def depDir = new File(projectDir, 'libs')
-
 dependencies {
-    compile files("$depDir/reactfx-20140204.jar") {
-        builtBy 'fetchDeps'
-    }
-}
-
-task fetchDeps << {
-    depDir.mkdirs()
-    download {
-        src 'https://googledrive.com/host/0B4a5AnNnZhkbX0d4QUZXenRUaVE/downloads/reactfx-20140204.jar'
-        dest depDir
-        overwrite = false
-    }
+    compile group: 'org.reactfx', name: 'reactfx', version: '1.0.0-SNAPSHOT'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
 task fatJar(type: Jar, dependsOn: classes) {

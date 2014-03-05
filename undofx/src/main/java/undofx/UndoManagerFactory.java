@@ -4,8 +4,9 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import reactfx.EventStream;
-import reactfx.EventStreams;
+import org.reactfx.EventStream;
+import org.reactfx.EventStreams;
+
 import undofx.impl.ChangeQueue;
 import undofx.impl.FixedSizeChangeQueue;
 import undofx.impl.UndoManagerImpl;
