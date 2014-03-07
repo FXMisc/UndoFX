@@ -1,4 +1,5 @@
 :boom: **IMPORTANT:** As of March 7, 2014, package `undofx` has been renamed to `org.fxmisc.undo` in the HEAD of the master branch. All upcoming builds will reflect this change. Please, update your source code.
+:boom: **NEW:** UndoFX snapshots are now deployed to the Sonatype repository. [See below](#use-undofx-in-your-project)
 
 UndoFX
 ======
@@ -85,7 +86,7 @@ This demo allow the user to change the color, radius and position of a circle, a
 
 [Download](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/downloads/) the pre-built "fat" JAR file and run
 
-    java -cp undofx-demos-fat-yyyymmdd.jar org.fxmisc.undo.demo.CircleProperties
+    java -cp undofx-demos-fat-1.0.0-SNAPSHOT.jar org.fxmisc.undo.demo.CircleProperties
 
 ### Run from the source repo
 
@@ -101,7 +102,50 @@ Requirements
 
 [JDK8](https://jdk8.java.net/download.html)
 
-[ReactFX](https://github.com/TomasMikula/ReactFX). You can either place the ReactFX JAR on the classpath, or download the UndoFX _fat_ JAR that has ReactFX included.
+
+Dependencies
+------------
+
+[ReactFX](https://github.com/TomasMikula/ReactFX). If you don't use Maven/Gradle/Sbt/Ivy to manage your dependencies, you will have to either place the ReactFX JAR on the classpath, or download the UndoFX _fat_ JAR (see below) that has ReactFX included.
+
+
+Use UndoFX in your project
+--------------------------
+
+### Method 1: as a managed dependency
+
+Snapshot releases are deployed to Sonatype snapshot repository with these Maven coordinates
+
+| Group ID        | Artifact ID | Version        |
+| :-------------: | :---------: | :------------: |
+| org.fxmisc.undo | undofx      | 1.0.0-SNAPSHOT |
+
+#### Gradle example
+
+```groovy
+repositories {
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots/' 
+    }
+}
+
+dependencies {
+    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.0.0-SNAPSHOT'
+}
+```
+
+#### Sbt example
+
+```scala
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+
+libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.0.0-SNAPSHOT"
+```
+
+
+### Method 2: as an unmanaged dependency
+
+Download the latest [JAR](https://oss.sonatype.org/content/repositories/snapshots/org/fxmisc/undo/undofx/1.0.0-SNAPSHOT/) or [fat JAR (including dependencies)](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/downloads/) and place it on your classpath.
 
 
 License
@@ -113,5 +157,4 @@ License
 Links
 -----
 
-[Download](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/downloads/)  
 [Javadoc](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/javadoc/org/fxmisc/undo/package-summary.html)  
