@@ -1,4 +1,4 @@
-:boom: **IMPORTANT:** As of March 7, 2014, package `undofx` has been renamed to `org.fxmisc.undo` in the HEAD of the master branch. All upcoming builds will reflect this change. Please, update your source code.
+:boom: **IMPORTANT:** As of March 7, 2014, package `undofx` has been renamed to `org.fxmisc.undo` in the HEAD of the master branch. All upcoming builds will reflect this change. Please, update your source code.  
 :boom: **NEW:** UndoFX snapshots are now deployed to the Sonatype repository. [See below](#use-undofx-in-your-project)
 
 UndoFX
