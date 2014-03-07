@@ -93,7 +93,7 @@ This demo allow the user to change the color, radius and position of a circle, a
 
 ### Source code
 
-[CircleProperties.java](https://github.com/TomasMikula/UndoFX/blob/master/undofx-demos/src/main/java/org/fxmisc/undo/demo/CircleProperties.java#L125-L145). See the highlighted lines for the gist of how the undo functionality is set up.
+[CircleProperties.java](https://github.com/TomasMikula/UndoFX/blob/master/undofx-demos/src/main/java/org/fxmisc/undo/demo/CircleProperties.java#L126-L146). See the highlighted lines for the gist of how the undo functionality is set up.
 
 
 Requirements
