@@ -8,7 +8,7 @@ subprojects {
         maven {
             url 'https://oss.sonatype.org/content/repositories/snapshots/' 
         }
-}
+    }
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'

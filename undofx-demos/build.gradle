@@ -11,6 +11,6 @@ task fatJar(type: Jar, dependsOn: classes) {
 assemble.dependsOn fatJar
 
 task CircleProperties(type: JavaExec, dependsOn: classes) {
-    main = 'undofx.demo.CircleProperties'
+    main = 'org.fxmisc.undo.demo.CircleProperties'
     classpath = files(sourceSets.main.output, configurations.runtime)
 }

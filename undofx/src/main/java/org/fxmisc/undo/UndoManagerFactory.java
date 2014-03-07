@@ -1,17 +1,16 @@
-package undofx;
+package org.fxmisc.undo;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import org.fxmisc.undo.impl.ChangeQueue;
+import org.fxmisc.undo.impl.FixedSizeChangeQueue;
+import org.fxmisc.undo.impl.UndoManagerImpl;
+import org.fxmisc.undo.impl.UnlimitedChangeQueue;
+import org.fxmisc.undo.impl.ZeroSizeChangeQueue;
 import org.reactfx.EventStream;
 import org.reactfx.EventStreams;
-
-import undofx.impl.ChangeQueue;
-import undofx.impl.FixedSizeChangeQueue;
-import undofx.impl.UndoManagerImpl;
-import undofx.impl.UnlimitedChangeQueue;
-import undofx.impl.ZeroSizeChangeQueue;
 
 public interface UndoManagerFactory {
 

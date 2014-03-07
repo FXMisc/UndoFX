@@ -1,4 +1,4 @@
-package undofx.impl;
+package org.fxmisc.undo.impl;
 
 import static org.junit.Assert.*;
 

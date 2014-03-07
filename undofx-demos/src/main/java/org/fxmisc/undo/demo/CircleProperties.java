@@ -1,4 +1,4 @@
-package undofx.demo;
+package org.fxmisc.undo.demo;
 
 import static org.reactfx.EventStreams.*;
 
@@ -21,11 +21,10 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
+import org.fxmisc.undo.UndoManager;
+import org.fxmisc.undo.UndoManagerFactory;
 import org.reactfx.Change;
 import org.reactfx.EventStream;
-
-import undofx.UndoManager;
-import undofx.UndoManagerFactory;
 
 public class CircleProperties extends Application {
 

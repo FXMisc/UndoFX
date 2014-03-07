@@ -1,3 +1,5 @@
+:boom: **IMPORTANT:** As of March 7, 2014, package `undofx` has been renamed to `org.fxmisc.undo` in the HEAD of the master branch. All upcoming builds will reflect this change. Please, update your source code.
+
 UndoFX
 ======
 
@@ -60,7 +62,7 @@ The _stream of change events_ is a [ReactFX](https://github.com/TomasMikula/Reac
 
 The _apply_, _unapply_ and _merge_ functions are all instances of [functional interfaces](http://download.java.net/jdk8/docs/api/java/util/function/package-summary.html) from JDK8, and thus can be instantiated using lambda expressions.
 
-Once you have all these, you can use one of the factory methods from [UndoManagerFactory](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/javadoc/undofx/UndoManagerFactory.html) to get an instance.
+Once you have all these, you can use one of the factory methods from [UndoManagerFactory](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/javadoc/org/fxmisc/undo/UndoManagerFactory.html) to get an instance.
 
 ```java
 EventStream<MyChange> changes = ...;
@@ -83,7 +85,7 @@ This demo allow the user to change the color, radius and position of a circle, a
 
 [Download](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/downloads/) the pre-built "fat" JAR file and run
 
-    java -cp undofx-demos-fat-yyyymmdd.jar undofx.demo.CircleProperties
+    java -cp undofx-demos-fat-yyyymmdd.jar org.fxmisc.undo.demo.CircleProperties
 
 ### Run from the source repo
 
@@ -91,7 +93,7 @@ This demo allow the user to change the color, radius and position of a circle, a
 
 ### Source code
 
-[CircleProperties.java](https://github.com/TomasMikula/UndoFX/blob/master/undofx-demos/src/main/java/undofx/demo/CircleProperties.java#L125-L145). See the highlighted lines for the gist of how the undo functionality is set up.
+[CircleProperties.java](https://github.com/TomasMikula/UndoFX/blob/master/undofx-demos/src/main/java/org/fxmisc/undo/demo/CircleProperties.java#L125-L145). See the highlighted lines for the gist of how the undo functionality is set up.
 
 
 Requirements
@@ -112,4 +114,4 @@ Links
 -----
 
 [Download](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/downloads/)  
-[Javadoc](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/javadoc/undofx/package-summary.html)  
+[Javadoc](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/javadoc/org/fxmisc/undo/package-summary.html)  

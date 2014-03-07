@@ -1,4 +1,4 @@
-package undofx;
+package org.fxmisc.undo;
 
 import javafx.beans.value.ObservableBooleanValue;
 
