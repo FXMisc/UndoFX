@@ -78,7 +78,7 @@ UndoManager undoManager = UndoManagerFactory.unlimitedHistoryUndoManager(
 Demo
 ----
 
-This demo allow the user to change the color, radius and position of a circle, and subsequently undo and redo the performed changes.
+This demo lets the user change the color, radius and position of a circle, and subsequently undo and redo the performed changes. In addition, multiple changes of one property in a row are merged together, so, for example, multiple radius changes in a row are tracked as one change.
 
 ![Screenshot of the CircleProperties demo](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/screenshots/circle-properties.png)
 
