@@ -119,6 +119,7 @@ public class CircleProperties extends Application {
     private final Slider centerY = new Slider(0, 400, 200);
     private final Button undoBtn = new Button("Undo");
     private final Button redoBtn = new Button("Redo");
+    private final Button saveBtn = new Button("Save");
     private final EventStream<CircleChange<?>> changes;
     private final UndoManager undoManager;
 
@@ -144,6 +145,12 @@ public class CircleProperties extends Application {
         redoBtn.disableProperty().bind(Bindings.not(undoManager.redoAvailableProperty()));
         undoBtn.setOnAction(evt -> undoManager.undo());
         redoBtn.setOnAction(evt -> undoManager.redo());
+        saveBtn.disableProperty().bind(undoManager.atMarkedPositionProperty());
+        saveBtn.setOnAction(evt -> { save(); undoManager.mark(); });
+    }
+
+    private void save() {
+        // implement save action here
     }
 
     @Override
@@ -153,7 +160,7 @@ public class CircleProperties extends Application {
         pane.setPrefHeight(400);
         pane.getChildren().add(circle);
 
-        HBox undoPanel = new HBox(20.0, undoBtn, redoBtn);
+        HBox undoPanel = new HBox(20.0, undoBtn, redoBtn, saveBtn);
 
         VBox root = new VBox(10.0,
                 pane,

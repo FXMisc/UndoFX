@@ -16,7 +16,9 @@ Highlights
 
 **Immutable change objects** are encouraged. In contrast, `UndoableEdit` from Swing is mutable by design.
 
-**Suppports merging of subsequent changes.**
+Suppports **merging of successive changes.**
+
+Supports **marking** a state (position in the history) when the document was last saved.
 
 
 API
@@ -35,7 +37,18 @@ public interface UndoManager {
 
     void preventMerge();
 
+    void mark();
+    UndoPosition getCurrentPosition();
+
+    ObservableBooleanValue atMarkedPositionProperty();
+    boolean isAtMarkedPosition();
+
     void close();
+
+    interface UndoPosition {
+        void mark();
+        boolean isValid();
+    }
 }
 ```
 
@@ -46,6 +59,12 @@ public interface UndoManager {
 `undoAvailable` and `redoAvailable` properties indicate whether there is a change to be undone or redone, respectively.
 
 `preventMerge()` explicitly prevents the next (upcoming) change from being merged with the latest one.
+
+`mark()` sets a mark at the current position in the change history. This is meant to be used when the document is saved.
+
+`getCurrentPosition()` returns a handle to the current position in the change history. This handle can be used to mark this position later, even if it is not the current position anymore.
+
+`atMarkedPosition` property indicates whether the mark is set on the current position in the change history. This can be used to tell whether there are any unsaved changes.
 
 `close()` stops observing change events and should be called when the UndoManager is not used anymore to prevent leaks.
 
@@ -78,7 +97,11 @@ UndoManager undoManager = UndoManagerFactory.unlimitedHistoryUndoManager(
 Demo
 ----
 
-This demo lets the user change the color, radius and position of a circle, and subsequently undo and redo the performed changes. In addition, multiple changes of one property in a row are merged together, so, for example, multiple radius changes in a row are tracked as one change.
+This demo lets the user change the color, radius and position of a circle, and subsequently undo and redo the performed changes.
+
+Multiple changes of one property in a row are merged together, so, for example, multiple radius changes in a row are tracked as one change.
+
+There is also a "Save" button that fakes a save operation. It is enabled only when changes have been made or undone since the last save.
 
 ![Screenshot of the CircleProperties demo](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/screenshots/circle-properties.png)
 
@@ -94,7 +117,7 @@ This demo lets the user change the color, radius and position of a circle, and s
 
 ### Source code
 
-[CircleProperties.java](https://github.com/TomasMikula/UndoFX/blob/master/undofx-demos/src/main/java/org/fxmisc/undo/demo/CircleProperties.java#L126-L146). See the highlighted lines for the gist of how the undo functionality is set up.
+[CircleProperties.java](https://github.com/TomasMikula/UndoFX/blob/master/undofx-demos/src/main/java/org/fxmisc/undo/demo/CircleProperties.java#L127-L149). See the highlighted lines for the gist of how the undo functionality is set up.
 
 
 Requirements

@@ -8,6 +8,7 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
 
 import org.fxmisc.undo.UndoManager;
+import org.fxmisc.undo.impl.ChangeQueue.QueuePosition;
 import org.reactfx.EventStream;
 import org.reactfx.Hold;
 import org.reactfx.Indicator;
@@ -15,11 +16,33 @@ import org.reactfx.Subscription;
 
 public class UndoManagerImpl<C> implements UndoManager {
 
+    private class UndoPositionImpl implements UndoPosition {
+        private final QueuePosition queuePos;
+
+        UndoPositionImpl(QueuePosition queuePos) {
+            this.queuePos = queuePos;
+        }
+
+        @Override
+        public void mark() {
+            mark = queuePos;
+            canMerge = false;
+            atMarkedPosition.invalidate();
+        }
+
+        @Override
+        public boolean isValid() {
+            return queuePos.isValid();
+        }
+    }
+
     private final ChangeQueue<C> queue;
     private final Consumer<C> apply;
     private final Consumer<C> undo;
     private final BiFunction<C, C, Optional<C>> merge;
     private final Subscription subscription;
+
+    private final Indicator ignoreChanges = new Indicator();
 
     private final BooleanBinding undoAvailable = new BooleanBinding() {
         @Override
@@ -35,9 +58,15 @@ public class UndoManagerImpl<C> implements UndoManager {
         }
     };
 
-    boolean canMerge;
+    private final BooleanBinding atMarkedPosition = new BooleanBinding() {
+        @Override
+        protected boolean computeValue() {
+            return isAtMarkedPosition();
+        }
+    };
 
-    private final Indicator ignoreChanges = new Indicator();
+    private boolean canMerge;
+    private QueuePosition mark;
 
     public UndoManagerImpl(
             ChangeQueue<C> queue,
@@ -49,7 +78,8 @@ public class UndoManagerImpl<C> implements UndoManager {
         this.apply = apply;
         this.undo = undo;
         this.merge = merge;
-        subscription = changeSource.subscribe(this::changeObserved);
+        this.mark = queue.getCurrentPosition();
+        this.subscription = changeSource.subscribe(this::changeObserved);
     }
 
     @Override
@@ -66,6 +96,7 @@ public class UndoManagerImpl<C> implements UndoManager {
             canMerge = false;
             undoAvailable.invalidate();
             redoAvailable.invalidate();
+            atMarkedPosition.invalidate();
             return true;
         } else {
             return false;
@@ -81,6 +112,7 @@ public class UndoManagerImpl<C> implements UndoManager {
             canMerge = false;
             undoAvailable.invalidate();
             redoAvailable.invalidate();
+            atMarkedPosition.invalidate();
             return true;
         } else {
             return false;
@@ -108,6 +140,21 @@ public class UndoManagerImpl<C> implements UndoManager {
     }
 
     @Override
+    public boolean isAtMarkedPosition() {
+        return mark.equals(queue.getCurrentPosition());
+    }
+
+    @Override
+    public ObservableBooleanValue atMarkedPositionProperty() {
+        return atMarkedPosition;
+    }
+
+    @Override
+    public UndoPosition getCurrentPosition() {
+        return new UndoPositionImpl(queue.getCurrentPosition());
+    }
+
+    @Override
     public void preventMerge() {
         canMerge = false;
     }
@@ -129,6 +176,7 @@ public class UndoManagerImpl<C> implements UndoManager {
         canMerge = true;
         undoAvailable.invalidate();
         redoAvailable.invalidate();
+        atMarkedPosition.invalidate();
     }
 
     @SuppressWarnings("unchecked")

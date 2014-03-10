@@ -4,6 +4,36 @@ import java.util.NoSuchElementException;
 
 public class ZeroSizeChangeQueue<C> implements ChangeQueue<C> {
 
+    private class QueuePositionImpl implements QueuePosition {
+        private final long rev;
+
+        QueuePositionImpl(long seq) {
+            this.rev = seq;
+        }
+
+        @Override
+        public boolean isValid() {
+            return rev == ZeroSizeChangeQueue.this.revision;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if(other instanceof ZeroSizeChangeQueue.QueuePositionImpl) {
+                @SuppressWarnings("unchecked")
+                QueuePositionImpl otherPos = (QueuePositionImpl) other;
+                return getQueue() == otherPos.getQueue() && rev == otherPos.rev;
+            } else {
+                return false;
+            }
+        }
+
+        private ZeroSizeChangeQueue<C> getQueue() {
+            return ZeroSizeChangeQueue.this;
+        }
+    }
+
+    private long revision = 0;
+
     @Override
     public boolean hasNext() {
         return false;
@@ -27,6 +57,11 @@ public class ZeroSizeChangeQueue<C> implements ChangeQueue<C> {
     @Override
     @SafeVarargs
     public final void push(C... changes) {
-        // do nothing
+        ++revision;
+    }
+
+    @Override
+    public QueuePosition getCurrentPosition() {
+        return new QueuePositionImpl(revision);
     }
 }
