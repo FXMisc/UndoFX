@@ -10,7 +10,6 @@ import org.fxmisc.undo.impl.UndoManagerImpl;
 import org.fxmisc.undo.impl.UnlimitedChangeQueue;
 import org.fxmisc.undo.impl.ZeroSizeChangeQueue;
 import org.reactfx.EventStream;
-import org.reactfx.EventStreams;
 
 public interface UndoManagerFactory {
 
@@ -105,9 +104,9 @@ public interface UndoManagerFactory {
         };
     }
 
-    public static UndoManager zeroHistoryUndoManager() {
-        ChangeQueue<?> queue = new ZeroSizeChangeQueue<>();
-        return new UndoManagerImpl<>(queue, c -> {}, c -> {}, (c1, c2) -> Optional.empty(), EventStreams.never());
+    public static <C> UndoManager zeroHistoryUndoManager(EventStream<C> changeStream) {
+        ChangeQueue<C> queue = new ZeroSizeChangeQueue<>();
+        return new UndoManagerImpl<>(queue, c -> {}, c -> {}, (c1, c2) -> Optional.empty(), changeStream);
     }
 
     public static UndoManagerFactory zeroHistoryFactory() {
@@ -117,7 +116,7 @@ public interface UndoManagerFactory {
                     EventStream<C> changeStream,
                     Consumer<C> apply,
                     Consumer<C> undo) {
-                return zeroHistoryUndoManager();
+                return zeroHistoryUndoManager(changeStream);
             }
 
             @Override
@@ -126,7 +125,7 @@ public interface UndoManagerFactory {
                     Consumer<C> apply,
                     Consumer<C> undo,
                     BiFunction<C, C, Optional<C>> merge) {
-                return zeroHistoryUndoManager();
+                return zeroHistoryUndoManager(changeStream);
             }
         };
     }

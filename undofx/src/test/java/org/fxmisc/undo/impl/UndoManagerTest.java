@@ -34,4 +34,19 @@ public class UndoManagerTest {
         assertFalse(um.atMarkedPositionProperty().get());
     }
 
+    @Test
+    public void zeroHistoryUndoManagerMark() {
+        EventSource<Integer> changes = new EventSource<>();
+        UndoManager um = UndoManagerFactory.zeroHistoryUndoManager(changes);
+
+        assertTrue(um.atMarkedPositionProperty().get());
+        changes.push(1);
+        assertFalse(um.atMarkedPositionProperty().get());
+        changes.push(2);
+        um.mark();
+        assertTrue(um.atMarkedPositionProperty().get());
+        changes.push(3);
+        changes.push(4);
+        assertFalse(um.atMarkedPositionProperty().get());
+    }
 }
