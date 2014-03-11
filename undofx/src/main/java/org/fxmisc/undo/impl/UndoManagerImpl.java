@@ -61,7 +61,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     private final BooleanBinding atMarkedPosition = new BooleanBinding() {
         @Override
         protected boolean computeValue() {
-            return isAtMarkedPosition();
+            return mark.equals(queue.getCurrentPosition());
         }
     };
 
@@ -141,7 +141,7 @@ public class UndoManagerImpl<C> implements UndoManager {
 
     @Override
     public boolean isAtMarkedPosition() {
-        return mark.equals(queue.getCurrentPosition());
+        return atMarkedPosition.get();
     }
 
     @Override
