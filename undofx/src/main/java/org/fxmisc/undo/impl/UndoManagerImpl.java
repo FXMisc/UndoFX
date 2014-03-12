@@ -159,6 +159,11 @@ public class UndoManagerImpl<C> implements UndoManager {
         canMerge = false;
     }
 
+    @Override
+    public void forgetHistory() {
+        queue.forgetHistory();
+    }
+
     private void changeObserved(C change) {
         if(!ignoreChanges.isOn()) {
             addChange(change);

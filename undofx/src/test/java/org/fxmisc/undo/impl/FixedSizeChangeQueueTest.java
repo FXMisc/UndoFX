@@ -119,6 +119,30 @@ public class FixedSizeChangeQueueTest {
     }
 
     @Test
+    public void testPositionValidityOnForgetHistory() {
+        ChangeQueue<Integer> queue = new FixedSizeChangeQueue<>(4);
+        QueuePosition pos0 = queue.getCurrentPosition();
+        queue.push(1);
+        QueuePosition pos1 = queue.getCurrentPosition();
+        queue.push(2);
+        QueuePosition pos2 = queue.getCurrentPosition();
+        queue.push(3);
+        QueuePosition pos3 = queue.getCurrentPosition();
+        queue.push(4);
+        QueuePosition pos4 = queue.getCurrentPosition();
+
+        queue.prev();
+        queue.prev();
+        queue.forgetHistory();
+
+        assertFalse(pos0.isValid());
+        assertFalse(pos1.isValid());
+        assertTrue(pos2.isValid());
+        assertTrue(pos3.isValid());
+        assertTrue(pos4.isValid());
+    }
+
+    @Test
     public void testPositionEquality() {
         ChangeQueue<Integer> queue = new FixedSizeChangeQueue<>(2);
         queue.push(1);

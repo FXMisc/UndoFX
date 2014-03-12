@@ -92,6 +92,14 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
     }
 
     @Override
+    public void forgetHistory() {
+        zeroPositionRevision = fetchRevisionForPosition(currentPosition);
+        start = arrayIndex(currentPosition);
+        size -= currentPosition;
+        currentPosition = 0;
+    }
+
+    @Override
     @SafeVarargs
     public final void push(C... changes) {
         RevisionedChange<C> lastOverwrittenChange = null;

@@ -58,6 +58,11 @@ public interface UndoManager {
     void preventMerge();
 
     /**
+     * Forgets all changes prior to the current position in the history.
+     */
+    void forgetHistory();
+
+    /**
      * Returns the current position within this UndoManager's history.
      */
     UndoPosition getCurrentPosition();

@@ -18,4 +18,6 @@ public interface ChangeQueue<C> {
     void push(C... changes);
 
     QueuePosition getCurrentPosition();
+
+    void forgetHistory();
 }

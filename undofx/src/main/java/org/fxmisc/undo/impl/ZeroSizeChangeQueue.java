@@ -64,4 +64,9 @@ public class ZeroSizeChangeQueue<C> implements ChangeQueue<C> {
     public QueuePosition getCurrentPosition() {
         return new QueuePositionImpl(revision);
     }
+
+    @Override
+    public void forgetHistory() {
+        // there is nothing to forget
+    }
 }

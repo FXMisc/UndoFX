@@ -37,6 +37,8 @@ public interface UndoManager {
 
     void preventMerge();
 
+    void forgetHistory();
+
     void mark();
     UndoPosition getCurrentPosition();
 
@@ -59,6 +61,8 @@ public interface UndoManager {
 `undoAvailable` and `redoAvailable` properties indicate whether there is a change to be undone or redone, respectively.
 
 `preventMerge()` explicitly prevents the next (upcoming) change from being merged with the latest one.
+
+`forgetHistory()` forgets all changes prior to the current position in the change history.
 
 `mark()` sets a mark at the current position in the change history. This is meant to be used when the document is saved.
 

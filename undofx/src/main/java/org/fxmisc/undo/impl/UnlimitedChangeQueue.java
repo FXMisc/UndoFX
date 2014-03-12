@@ -5,17 +5,18 @@ import java.util.ArrayList;
 public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
 
     private class QueuePositionImpl implements QueuePosition {
-        private final int pos;
+        private final int allTimePos;
         private final long rev;
 
-        QueuePositionImpl(int pos, long rev) {
-            this.pos = pos;
+        QueuePositionImpl(int allTimePos, long rev) {
+            this.allTimePos = allTimePos;
             this.rev = rev;
         }
 
         @Override
         public boolean isValid() {
-            if(pos <= changes.size()) {
+            int pos = allTimePos - forgottenCount;
+            if(0 <= pos && pos <= changes.size()) {
                 return rev == revisionForPosition(pos);
             } else {
                 return false;
@@ -42,7 +43,8 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
     private int currentPosition = 0;
 
     private long revision = 0;
-    private final long zeroPositionRevision = revision;
+    private long zeroPositionRevision = revision;
+    private int forgottenCount = 0;
 
     @Override
     public final boolean hasNext() {
@@ -65,6 +67,20 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
     }
 
     @Override
+    public void forgetHistory() {
+        if(currentPosition > 0) {
+            zeroPositionRevision = revisionForPosition(currentPosition);
+            int newSize = changes.size() - currentPosition;
+            for(int i = 0; i < newSize; ++i) {
+                changes.set(i, changes.get(currentPosition + i));
+            }
+            changes.subList(newSize, changes.size()).clear();
+            forgottenCount += currentPosition;
+            currentPosition = 0;
+        }
+    }
+
+    @Override
     @SafeVarargs
     public final void push(C... changes) {
         this.changes.subList(currentPosition, this.changes.size()).clear();
@@ -77,7 +93,7 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
 
     @Override
     public QueuePosition getCurrentPosition() {
-        return new QueuePositionImpl(currentPosition, revisionForPosition(currentPosition));
+        return new QueuePositionImpl(forgottenCount + currentPosition, revisionForPosition(currentPosition));
     }
 
     private long revisionForPosition(int position) {
