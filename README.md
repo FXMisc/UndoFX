@@ -184,4 +184,4 @@ License
 Links
 -----
 
-[Javadoc](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/javadoc/org/fxmisc/undo/package-summary.html)  
+[Javadoc](http://www.fxmisc.org/undo/javadoc/org/fxmisc/undo/package-summary.html)  
