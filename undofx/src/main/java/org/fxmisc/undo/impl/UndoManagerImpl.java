@@ -10,7 +10,7 @@ import javafx.beans.value.ObservableBooleanValue;
 import org.fxmisc.undo.UndoManager;
 import org.fxmisc.undo.impl.ChangeQueue.QueuePosition;
 import org.reactfx.EventStream;
-import org.reactfx.Hold;
+import org.reactfx.Guard;
 import org.reactfx.Indicator;
 import org.reactfx.Subscription;
 
@@ -90,7 +90,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public boolean undo() {
         if(isUndoAvailable()) {
-            try(Hold h = ignoreChanges.on()) {
+            try(Guard g = ignoreChanges.on()) {
                 undo.accept(queue.prev());
             }
             canMerge = false;
@@ -106,7 +106,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public boolean redo() {
         if(isRedoAvailable()) {
-            try(Hold h = ignoreChanges.on()) {
+            try(Guard g = ignoreChanges.on()) {
                 apply.accept(queue.next());
             }
             canMerge = false;
