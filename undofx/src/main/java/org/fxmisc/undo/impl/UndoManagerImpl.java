@@ -47,14 +47,14 @@ public class UndoManagerImpl<C> implements UndoManager {
     private final BooleanBinding undoAvailable = new BooleanBinding() {
         @Override
         protected boolean computeValue() {
-            return isUndoAvailable();
+            return queue.hasPrev();
         }
     };
 
     private final BooleanBinding redoAvailable = new BooleanBinding() {
         @Override
         protected boolean computeValue() {
-            return isRedoAvailable();
+            return queue.hasNext();
         }
     };
 
@@ -121,7 +121,7 @@ public class UndoManagerImpl<C> implements UndoManager {
 
     @Override
     public boolean isUndoAvailable() {
-        return queue.hasPrev();
+        return undoAvailable.get();
     }
 
     @Override
@@ -131,7 +131,7 @@ public class UndoManagerImpl<C> implements UndoManager {
 
     @Override
     public boolean isRedoAvailable() {
-        return queue.hasNext();
+        return redoAvailable.get();
     }
 
     @Override
