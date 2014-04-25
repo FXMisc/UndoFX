@@ -162,6 +162,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public void forgetHistory() {
         queue.forgetHistory();
+        undoAvailable.invalidate();
     }
 
     private void changeObserved(C change) {
