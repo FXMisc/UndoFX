@@ -42,7 +42,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     private final BiFunction<C, C, Optional<C>> merge;
     private final Subscription subscription;
 
-    private final Indicator ignoreChanges = new Indicator();
+    private final Indicator performingAction = new Indicator();
 
     private final BooleanBinding undoAvailable = new BooleanBinding() {
         @Override
@@ -90,7 +90,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public boolean undo() {
         if(isUndoAvailable()) {
-            try(Guard g = ignoreChanges.on()) {
+            try(Guard g = performingAction.on()) {
                 undo.accept(queue.prev());
             }
             canMerge = false;
@@ -106,7 +106,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public boolean redo() {
         if(isRedoAvailable()) {
-            try(Guard g = ignoreChanges.on()) {
+            try(Guard g = performingAction.on()) {
                 apply.accept(queue.next());
             }
             canMerge = false;
@@ -140,6 +140,16 @@ public class UndoManagerImpl<C> implements UndoManager {
     }
 
     @Override
+    public boolean isPerformingAction() {
+        return performingAction.get();
+    }
+
+    @Override
+    public ObservableBooleanValue performingActionProperty() {
+        return performingAction;
+    }
+
+    @Override
     public boolean isAtMarkedPosition() {
         return atMarkedPosition.get();
     }
@@ -166,7 +176,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     }
 
     private void changeObserved(C change) {
-        if(!ignoreChanges.isOn()) {
+        if(!performingAction.isOn()) {
             addChange(change);
         }
     }

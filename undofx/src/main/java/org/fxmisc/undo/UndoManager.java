@@ -53,6 +53,13 @@ public interface UndoManager {
     boolean isRedoAvailable();
 
     /**
+     * Indicates whether this undo manager is currently performing undo or redo
+     * action.
+     */
+    ObservableBooleanValue performingActionProperty();
+    boolean isPerformingAction();
+
+    /**
      * Prevents the next change from being merged with the latest one.
      */
     void preventMerge();
