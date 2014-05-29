@@ -82,9 +82,9 @@ To get an instance of `UndoManager` you need:
  * a function to **unapply** (undo) a change; and
  * optionally, a function to optionally **merge** two subsequent changes into a single change.
 
-The _stream of change events_ is a [ReactFX](https://github.com/TomasMikula/ReactFX) `EventStream`. For an example of how you can construct one, have a look at the source code of the [demo below](#demo).
+The _stream of change events_ is a [ReactFX](http://www.reactfx.org/) `EventStream`. For an example of how you can construct one, have a look at the source code of the [demo below](#demo).
 
-The _apply_, _unapply_ and _merge_ functions are all instances of [functional interfaces](http://download.java.net/jdk8/docs/api/java/util/function/package-summary.html) from JDK8, and thus can be instantiated using lambda expressions.
+The _apply_, _unapply_ and _merge_ functions are all instances of [functional interfaces](http://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html) from JDK8, and thus can be instantiated using lambda expressions.
 
 Once you have all these, you can use one of the factory methods from [UndoManagerFactory](http://www.fxmisc.org/undo/javadoc/org/fxmisc/undo/UndoManagerFactory.html) to get an instance.
 
