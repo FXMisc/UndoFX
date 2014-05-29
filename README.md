@@ -86,7 +86,7 @@ The _stream of change events_ is a [ReactFX](https://github.com/TomasMikula/Reac
 
 The _apply_, _unapply_ and _merge_ functions are all instances of [functional interfaces](http://download.java.net/jdk8/docs/api/java/util/function/package-summary.html) from JDK8, and thus can be instantiated using lambda expressions.
 
-Once you have all these, you can use one of the factory methods from [UndoManagerFactory](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/javadoc/org/fxmisc/undo/UndoManagerFactory.html) to get an instance.
+Once you have all these, you can use one of the factory methods from [UndoManagerFactory](http://www.fxmisc.org/undo/javadoc/org/fxmisc/undo/UndoManagerFactory.html) to get an instance.
 
 ```java
 EventStream<MyChange> changes = ...;
@@ -111,9 +111,9 @@ There is also a "Save" button that fakes a save operation. It is enabled only wh
 
 ### Run from the pre-built JAR
 
-[Download](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/downloads/) the pre-built "fat" JAR file and run
+[Download](https://github.com/TomasMikula/UndoFX/releases/download/v1.0.0/undofx-demos-fat-1.0.0.jar) the pre-built "fat" JAR file and run
 
-    java -cp undofx-demos-fat-1.0.0-SNAPSHOT.jar org.fxmisc.undo.demo.CircleProperties
+    java -cp undofx-demos-fat-1.0.0.jar org.fxmisc.undo.demo.CircleProperties
 
 ### Run from the source repo
 
@@ -139,13 +139,44 @@ Dependencies
 Use UndoFX in your project
 --------------------------
 
-### Method 1: as a managed dependency
+### Stable release
 
-Snapshot releases are deployed to Sonatype snapshot repository with these Maven coordinates
+Current stable release is 1.0.0.
+
+#### Maven coordinates
+
+| Group ID        | Artifact ID | Version |
+| :-------------: | :---------: | :-----: |
+| org.fxmisc.undo | undofx      | 1.0.0   |
+
+#### Gradle example
+
+```groovy
+dependencies {
+    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.0.0'
+}
+```
+
+#### Sbt example
+
+```scala
+libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.0.0"
+```
+
+#### Manual download
+
+Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v1.0.0/undofx-1.0.0.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v1.0.0/undofx-fat-1.0.0.jar) and place it on your classpath.
+
+
+### Snapshot releases
+
+Snapshot releases are deployed to Sonatype snapshot repository.
+
+#### Maven coordinates
 
 | Group ID        | Artifact ID | Version        |
 | :-------------: | :---------: | :------------: |
-| org.fxmisc.undo | undofx      | 1.0.0-SNAPSHOT |
+| org.fxmisc.undo | undofx      | 1.0.1-SNAPSHOT |
 
 #### Gradle example
 
@@ -157,7 +188,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.0.0-SNAPSHOT'
+    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.0.1-SNAPSHOT'
 }
 ```
 
@@ -166,13 +197,8 @@ dependencies {
 ```scala
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.0.0-SNAPSHOT"
+libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.0.1-SNAPSHOT"
 ```
-
-
-### Method 2: as an unmanaged dependency
-
-Download the latest [JAR](https://oss.sonatype.org/content/repositories/snapshots/org/fxmisc/undo/undofx/1.0.0-SNAPSHOT/) or [fat JAR (including dependencies)](https://googledrive.com/host/0B4a5AnNnZhkbVDRiZmxiMW1OYk0/downloads/) and place it on your classpath.
 
 
 License
