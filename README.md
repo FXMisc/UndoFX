@@ -111,9 +111,9 @@ There is also a "Save" button that fakes a save operation. It is enabled only wh
 
 ### Run from the pre-built JAR
 
-[Download](https://github.com/TomasMikula/UndoFX/releases/download/v1.0.0/undofx-demos-fat-1.0.0.jar) the pre-built "fat" JAR file and run
+[Download](https://github.com/TomasMikula/UndoFX/releases/download/v1.0.1/undofx-demos-fat-1.0.1.jar) the pre-built "fat" JAR file and run
 
-    java -cp undofx-demos-fat-1.0.0.jar org.fxmisc.undo.demo.CircleProperties
+    java -cp undofx-demos-fat-1.0.1.jar org.fxmisc.undo.demo.CircleProperties
 
 ### Run from the source repo
 
@@ -141,31 +141,31 @@ Use UndoFX in your project
 
 ### Stable release
 
-Current stable release is 1.0.0.
+Current stable release is 1.0.1.
 
 #### Maven coordinates
 
 | Group ID        | Artifact ID | Version |
 | :-------------: | :---------: | :-----: |
-| org.fxmisc.undo | undofx      | 1.0.0   |
+| org.fxmisc.undo | undofx      | 1.0.1   |
 
 #### Gradle example
 
 ```groovy
 dependencies {
-    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.0.0'
+    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.0.1'
 }
 ```
 
 #### Sbt example
 
 ```scala
-libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.0.0"
+libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.0.1"
 ```
 
 #### Manual download
 
-Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v1.0.0/undofx-1.0.0.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v1.0.0/undofx-fat-1.0.0.jar) and place it on your classpath.
+Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v1.0.1/undofx-1.0.1.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v1.0.1/undofx-fat-1.0.1.jar) and place it on your classpath.
 
 
 ### Snapshot releases
@@ -176,7 +176,7 @@ Snapshot releases are deployed to Sonatype snapshot repository.
 
 | Group ID        | Artifact ID | Version        |
 | :-------------: | :---------: | :------------: |
-| org.fxmisc.undo | undofx      | 1.0.1-SNAPSHOT |
+| org.fxmisc.undo | undofx      | 1.0.2-SNAPSHOT |
 
 #### Gradle example
 
@@ -188,7 +188,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.0.1-SNAPSHOT'
+    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.0.2-SNAPSHOT'
 }
 ```
 
@@ -197,7 +197,7 @@ dependencies {
 ```scala
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.0.1-SNAPSHOT"
+libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.0.2-SNAPSHOT"
 ```
 
 
