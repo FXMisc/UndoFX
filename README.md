@@ -111,9 +111,9 @@ There is also a "Save" button that fakes a save operation. It is enabled only wh
 
 ### Run from the pre-built JAR
 
-[Download](https://github.com/TomasMikula/UndoFX/releases/download/v1.1/undofx-demos-fat-1.1.jar) the pre-built "fat" JAR file and run
+[Download](https://github.com/TomasMikula/UndoFX/releases/download/v1.1.1/undofx-demos-fat-1.1.1.jar) the pre-built "fat" JAR file and run
 
-    java -cp undofx-demos-fat-1.1.jar org.fxmisc.undo.demo.CircleProperties
+    java -cp undofx-demos-fat-1.1.1.jar org.fxmisc.undo.demo.CircleProperties
 
 ### Run from the source repo
 
@@ -141,31 +141,31 @@ Use UndoFX in your project
 
 ### Stable release
 
-Current stable release is 1.1.
+Current stable release is 1.1.1.
 
 #### Maven coordinates
 
 | Group ID        | Artifact ID | Version |
 | :-------------: | :---------: | :-----: |
-| org.fxmisc.undo | undofx      | 1.1     |
+| org.fxmisc.undo | undofx      | 1.1.1   |
 
 #### Gradle example
 
 ```groovy
 dependencies {
-    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.1'
+    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.1.1'
 }
 ```
 
 #### Sbt example
 
 ```scala
-libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.1"
+libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.1.1"
 ```
 
 #### Manual download
 
-Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v1.1/undofx-1.1.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v1.1/undofx-fat-1.1.jar) and place it on your classpath.
+Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v1.1.1/undofx-1.1.1.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v1.1.1/undofx-fat-1.1.1.jar) and place it on your classpath.
 
 
 ### Snapshot releases
