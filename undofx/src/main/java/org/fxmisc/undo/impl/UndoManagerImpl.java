@@ -90,8 +90,8 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public boolean undo() {
         if(isUndoAvailable()) {
-            performingAction.suspendWhile(() -> apply.accept(invert.apply(queue.prev())));
             canMerge = false;
+            performChange(invert.apply(queue.prev()));
             undoAvailable.invalidate();
             redoAvailable.invalidate();
             atMarkedPosition.invalidate();
@@ -104,8 +104,8 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public boolean redo() {
         if(isRedoAvailable()) {
-            performingAction.suspendWhile(() -> apply.accept(queue.next()));
             canMerge = false;
+            performChange(queue.next());
             undoAvailable.invalidate();
             redoAvailable.invalidate();
             atMarkedPosition.invalidate();
@@ -169,6 +169,10 @@ public class UndoManagerImpl<C> implements UndoManager {
     public void forgetHistory() {
         queue.forgetHistory();
         undoAvailable.invalidate();
+    }
+
+    private void performChange(C change) {
+        performingAction.suspendWhile(() -> apply.accept(change));
     }
 
     private void changeObserved(C change) {
