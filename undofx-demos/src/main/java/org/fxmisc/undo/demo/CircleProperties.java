@@ -2,6 +2,7 @@ package org.fxmisc.undo.demo;
 
 import static org.reactfx.EventStreams.*;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import javafx.application.Application;
@@ -48,6 +49,11 @@ public class CircleProperties extends Application {
             // don't merge changes by default
             return Optional.empty();
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(oldValue, newValue);
+        }
     };
 
     private class ColorChange extends CircleChange<Color> {
@@ -59,6 +65,17 @@ public class CircleProperties extends Application {
         }
         @Override void redo() { colorPicker.setValue(newValue); }
         @Override ColorChange invert() { return new ColorChange(newValue, oldValue); }
+
+        @Override
+        public boolean equals(Object other) {
+            if(other instanceof ColorChange) {
+                ColorChange that = (ColorChange) other;
+                return Objects.equals(this.oldValue, that.oldValue)
+                    && Objects.equals(this.newValue, that.newValue);
+            } else {
+                return false;
+            }
+        }
     }
 
     private class RadiusChange extends CircleChange<Double> {
@@ -75,6 +92,17 @@ public class CircleProperties extends Application {
                 return Optional.of(new RadiusChange(oldValue, ((RadiusChange) other).newValue));
             } else {
                 return Optional.empty();
+            }
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if(other instanceof RadiusChange) {
+                RadiusChange that = (RadiusChange) other;
+                return Objects.equals(this.oldValue, that.oldValue)
+                    && Objects.equals(this.newValue, that.newValue);
+            } else {
+                return false;
             }
         }
     }
@@ -95,6 +123,17 @@ public class CircleProperties extends Application {
                 return Optional.empty();
             }
         }
+
+        @Override
+        public boolean equals(Object other) {
+            if(other instanceof CenterXChange) {
+                CenterXChange that = (CenterXChange) other;
+                return Objects.equals(this.oldValue, that.oldValue)
+                    && Objects.equals(this.newValue, that.newValue);
+            } else {
+                return false;
+            }
+        }
     }
 
     private class CenterYChange extends CircleChange<Double> {
@@ -111,6 +150,17 @@ public class CircleProperties extends Application {
                 return Optional.of(new CenterYChange(oldValue, ((CenterYChange) other).newValue));
             } else {
                 return Optional.empty();
+            }
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if(other instanceof CenterYChange) {
+                CenterYChange that = (CenterYChange) other;
+                return Objects.equals(this.oldValue, that.oldValue)
+                    && Objects.equals(this.newValue, that.newValue);
+            } else {
+                return false;
             }
         }
     }

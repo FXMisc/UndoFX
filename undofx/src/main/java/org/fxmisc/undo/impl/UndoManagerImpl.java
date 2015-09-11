@@ -41,7 +41,6 @@ public class UndoManagerImpl<C> implements UndoManager {
     private final Consumer<C> apply;
     private final BiFunction<C, C, Optional<C>> merge;
     private final Subscription subscription;
-
     private final SuspendableNo performingAction = new SuspendableNo();
 
     private final BooleanBinding undoAvailable = new BooleanBinding() {
@@ -67,6 +66,7 @@ public class UndoManagerImpl<C> implements UndoManager {
 
     private boolean canMerge;
     private QueuePosition mark;
+    private C expectedChange = null;
 
     public UndoManagerImpl(
             ChangeQueue<C> queue,
@@ -172,12 +172,19 @@ public class UndoManagerImpl<C> implements UndoManager {
     }
 
     private void performChange(C change) {
+        this.expectedChange = change;
         performingAction.suspendWhile(() -> apply.accept(change));
     }
 
     private void changeObserved(C change) {
-        if(!performingAction.get()) {
+        if(expectedChange == null) {
             addChange(change);
+        } else if(expectedChange.equals(change)) {
+            expectedChange = null;
+        } else {
+            throw new IllegalArgumentException("Unexpected change received."
+                    + "\nExpected:\n" + expectedChange
+                    + "\nReceived:\n" + change);
         }
     }
 
