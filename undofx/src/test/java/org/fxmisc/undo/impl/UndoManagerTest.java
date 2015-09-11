@@ -8,8 +8,33 @@ import org.fxmisc.undo.UndoManager;
 import org.fxmisc.undo.UndoManagerFactory;
 import org.junit.Test;
 import org.reactfx.EventSource;
+import org.reactfx.value.Var;
 
 public class UndoManagerTest {
+
+    @Test
+    public void testUndoInvertsTheChange() {
+        EventSource<Integer> changes = new EventSource<>();
+        Var<Integer> lastAction = Var.newSimpleVar(null);
+        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+                changes, i -> -i, lastAction::setValue);
+
+        changes.push(3);
+        changes.push(7);
+        assertNull(lastAction.getValue());
+
+        um.undo();
+        assertEquals(-7, lastAction.getValue().intValue());
+
+        um.undo();
+        assertEquals(-3, lastAction.getValue().intValue());
+
+        um.redo();
+        assertEquals(3, lastAction.getValue().intValue());
+
+        um.redo();
+        assertEquals(7, lastAction.getValue().intValue());
+    }
 
     @Test
     public void testMark() {
