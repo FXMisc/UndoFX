@@ -10,9 +10,8 @@ import javafx.beans.value.ObservableBooleanValue;
 import org.fxmisc.undo.UndoManager;
 import org.fxmisc.undo.impl.ChangeQueue.QueuePosition;
 import org.reactfx.EventStream;
-import org.reactfx.Guard;
-import org.reactfx.Indicator;
 import org.reactfx.Subscription;
+import org.reactfx.SuspendableNo;
 
 public class UndoManagerImpl<C> implements UndoManager {
 
@@ -42,7 +41,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     private final BiFunction<C, C, Optional<C>> merge;
     private final Subscription subscription;
 
-    private final Indicator performingAction = new Indicator();
+    private final SuspendableNo performingAction = new SuspendableNo();
 
     private final BooleanBinding undoAvailable = new BooleanBinding() {
         @Override
@@ -90,9 +89,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public boolean undo() {
         if(isUndoAvailable()) {
-            try(Guard g = performingAction.on()) {
-                undo.accept(queue.prev());
-            }
+            performingAction.suspendWhile(() -> undo.accept(queue.prev()));
             canMerge = false;
             undoAvailable.invalidate();
             redoAvailable.invalidate();
@@ -106,9 +103,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public boolean redo() {
         if(isRedoAvailable()) {
-            try(Guard g = performingAction.on()) {
-                apply.accept(queue.next());
-            }
+            performingAction.suspendWhile(() -> apply.accept(queue.next()));
             canMerge = false;
             undoAvailable.invalidate();
             redoAvailable.invalidate();
@@ -176,7 +171,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     }
 
     private void changeObserved(C change) {
-        if(!performingAction.isOn()) {
+        if(!performingAction.get()) {
             addChange(change);
         }
     }
