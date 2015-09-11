@@ -3,6 +3,7 @@ package org.fxmisc.undo.impl;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
@@ -36,8 +37,8 @@ public class UndoManagerImpl<C> implements UndoManager {
     }
 
     private final ChangeQueue<C> queue;
+    private final Function<? super C, ? extends C> invert;
     private final Consumer<C> apply;
-    private final Consumer<C> undo;
     private final BiFunction<C, C, Optional<C>> merge;
     private final Subscription subscription;
 
@@ -69,13 +70,13 @@ public class UndoManagerImpl<C> implements UndoManager {
 
     public UndoManagerImpl(
             ChangeQueue<C> queue,
+            Function<? super C, ? extends C> invert,
             Consumer<C> apply,
-            Consumer<C> undo,
             BiFunction<C, C, Optional<C>> merge,
             EventStream<C> changeSource) {
         this.queue = queue;
+        this.invert = invert;
         this.apply = apply;
-        this.undo = undo;
         this.merge = merge;
         this.mark = queue.getCurrentPosition();
         this.subscription = changeSource.subscribe(this::changeObserved);
@@ -89,7 +90,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public boolean undo() {
         if(isUndoAvailable()) {
-            performingAction.suspendWhile(() -> undo.accept(queue.prev()));
+            performingAction.suspendWhile(() -> apply.accept(invert.apply(queue.prev())));
             canMerge = false;
             undoAvailable.invalidate();
             redoAvailable.invalidate();

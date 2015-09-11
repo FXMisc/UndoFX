@@ -42,7 +42,7 @@ public class CircleProperties extends Application {
         }
 
         abstract void redo();
-        abstract void undo();
+        abstract CircleChange<T> invert();
 
         Optional<CircleChange<?>> mergeWith(CircleChange<?> other) {
             // don't merge changes by default
@@ -51,11 +51,14 @@ public class CircleProperties extends Application {
     };
 
     private class ColorChange extends CircleChange<Color> {
+        public ColorChange(Color oldValue, Color newValue) {
+            super(oldValue, newValue);
+        }
         public ColorChange(Change<Paint> c) {
-            super((Color) c.getOldValue(), (Color) c.getNewValue());
+            this((Color) c.getOldValue(), (Color) c.getNewValue());
         }
         @Override void redo() { colorPicker.setValue(newValue); }
-        @Override void undo() { colorPicker.setValue(oldValue); }
+        @Override ColorChange invert() { return new ColorChange(newValue, oldValue); }
     }
 
     private class RadiusChange extends CircleChange<Double> {
@@ -66,7 +69,7 @@ public class CircleProperties extends Application {
             super(c.getOldValue().doubleValue(), c.getNewValue().doubleValue());
         }
         @Override void redo() { radius.setValue(newValue); }
-        @Override void undo() { radius.setValue(oldValue); }
+        @Override RadiusChange invert() { return new RadiusChange(newValue, oldValue); }
         @Override Optional<CircleChange<?>> mergeWith(CircleChange<?> other) {
             if(other instanceof RadiusChange) {
                 return Optional.of(new RadiusChange(oldValue, ((RadiusChange) other).newValue));
@@ -84,7 +87,7 @@ public class CircleProperties extends Application {
             super(c.getOldValue().doubleValue(), c.getNewValue().doubleValue());
         }
         @Override void redo() { centerX.setValue(newValue); }
-        @Override void undo() { centerX.setValue(oldValue); }
+        @Override CenterXChange invert() { return new CenterXChange(newValue, oldValue); }
         @Override Optional<CircleChange<?>> mergeWith(CircleChange<?> other) {
             if(other instanceof CenterXChange) {
                 return Optional.of(new CenterXChange(oldValue, ((CenterXChange) other).newValue));
@@ -102,7 +105,7 @@ public class CircleProperties extends Application {
             super(c.getOldValue().doubleValue(), c.getNewValue().doubleValue());
         }
         @Override void redo() { centerY.setValue(newValue); }
-        @Override void undo() { centerY.setValue(oldValue); }
+        @Override CenterYChange invert() { return new CenterYChange(newValue, oldValue); }
         @Override Optional<CircleChange<?>> mergeWith(CircleChange<?> other) {
             if(other instanceof CenterYChange) {
                 return Optional.of(new CenterYChange(oldValue, ((CenterYChange) other).newValue));
@@ -137,8 +140,8 @@ public class CircleProperties extends Application {
 
         undoManager = UndoManagerFactory.unlimitedHistoryUndoManager(
                     changes, // stream of changes to observe
-                    c -> c.redo(), // function to redo a change
-                    c -> c.undo(), // function to undo a change
+                    c -> c.invert(), // function to invert a change
+                    c -> c.redo(), // function to undo a change
                     (c1, c2) -> c1.mergeWith(c2)); // function to merge two changes
 
         undoBtn.disableProperty().bind(Bindings.not(undoManager.undoAvailableProperty()));

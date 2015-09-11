@@ -15,7 +15,7 @@ public class UndoManagerTest {
     public void testMark() {
         EventSource<Integer> changes = new EventSource<>();
         UndoManager um = UndoManagerFactory.fixedSizeHistoryUndoManager(
-                changes, c -> {}, c -> {}, 4);
+                changes, c -> c, c -> {}, 4);
 
         assertTrue(um.atMarkedPositionProperty().get());
         changes.push(1);
