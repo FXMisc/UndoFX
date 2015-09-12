@@ -1,6 +1,3 @@
-:boom: **IMPORTANT:** As of March 7, 2014, package `undofx` has been renamed to `org.fxmisc.undo` in the HEAD of the master branch. All upcoming builds will reflect this change. Please, update your source code.  
-:boom: **NEW:** UndoFX snapshots are now deployed to the Sonatype repository. [See below](#use-undofx-in-your-project)
-
 UndoFX
 ======
 
@@ -78,13 +75,15 @@ Getting an `UndoManager` instance
 
 To get an instance of `UndoManager` you need:
  * a **stream of change events**;
- * a function to **apply** (redo) a change;
- * a function to **unapply** (undo) a change; and
+ * a function to **invert** a change;
+ * a function to **apply** a change; and
  * optionally, a function to optionally **merge** two subsequent changes into a single change.
 
 The _stream of change events_ is a [ReactFX](http://www.reactfx.org/) `EventStream`. For an example of how you can construct one, have a look at the source code of the [demo below](#demo).
 
-The _apply_, _unapply_ and _merge_ functions are all instances of [functional interfaces](http://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html) from JDK8, and thus can be instantiated using lambda expressions.
+The _invert_, _apply_, and _merge_ functions are all instances of [functional interfaces](http://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html) from JDK8, and thus can be instantiated using lambda expressions.
+
+You also need to make sure that your change objects properly implement `equals`.
 
 Once you have all these, you can use one of the factory methods from [UndoManagerFactory](http://www.fxmisc.org/undo/javadoc/org/fxmisc/undo/UndoManagerFactory.html) to get an instance.
 
@@ -92,8 +91,8 @@ Once you have all these, you can use one of the factory methods from [UndoManage
 EventStream<MyChange> changes = ...;
 UndoManager undoManager = UndoManagerFactory.unlimitedHistoryUndoManager(
         changes,
+        change -> invertChange(change),
         change -> applyChange(change),
-        change -> unapplyChange(change),
         (c1, c2) -> mergeChanges(c1, c2));
 ```
 
