@@ -7,113 +7,113 @@ import java.util.function.Function;
 
 import org.fxmisc.undo.impl.ChangeQueue;
 import org.fxmisc.undo.impl.FixedSizeChangeQueue;
-import org.fxmisc.undo.impl.UndoManagerImpl;
+import org.fxmisc.undo.impl.LinearUndoManager;
 import org.fxmisc.undo.impl.UnlimitedChangeQueue;
 import org.fxmisc.undo.impl.ZeroSizeChangeQueue;
 import org.reactfx.EventStream;
 
 public interface UndoManagerFactory {
 
-    <C> UndoManager create(
+    <C> UndoManager<Object> createLinear(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply);
 
-    <C> UndoManager create(
+    <C> UndoManager<Object> createLinear(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge);
 
-    public static <C> UndoManager unlimitedHistoryUndoManager(
+    public static <C> UndoManager<Object> unlimitedHistoryLinearManager(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply) {
         ChangeQueue<C> queue = new UnlimitedChangeQueue<C>();
         BiFunction<C, C, Optional<C>> merge = (c1, c2) -> Optional.empty();
-        return new UndoManagerImpl<>(queue, invert, apply, merge, changeStream);
+        return new LinearUndoManager<>(queue, invert, apply, merge, changeStream);
     }
 
-    public static <C> UndoManager unlimitedHistoryUndoManager(
+    public static <C> UndoManager<Object> unlimitedHistoryLinearManager(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge) {
         ChangeQueue<C> queue = new UnlimitedChangeQueue<C>();
-        return new UndoManagerImpl<>(queue, invert, apply, merge, changeStream);
+        return new LinearUndoManager<>(queue, invert, apply, merge, changeStream);
     }
 
-    public static UndoManagerFactory unlimitedHistoryFactory() {
+    public static UndoManagerFactory unlimitedHistoryLinearFactory() {
         return new UndoManagerFactory() {
             @Override
-            public <C> UndoManager create(
+            public <C> UndoManager<Object> createLinear(
                     EventStream<C> changeStream,
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply) {
-                return unlimitedHistoryUndoManager(changeStream, invert, apply);
+                return unlimitedHistoryLinearManager(changeStream, invert, apply);
             }
 
             @Override
-            public <C> UndoManager create(
+            public <C> UndoManager<Object> createLinear(
                     EventStream<C> changeStream,
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply,
                     BiFunction<C, C, Optional<C>> merge) {
-                return unlimitedHistoryUndoManager(changeStream, invert, apply, merge);
+                return unlimitedHistoryLinearManager(changeStream, invert, apply, merge);
             }
         };
     }
 
-    public static <C> UndoManager fixedSizeHistoryUndoManager(
+    public static <C> UndoManager<Object> fixedSizeHistoryLinearManager(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             int capacity) {
         ChangeQueue<C> queue = new FixedSizeChangeQueue<C>(capacity);
         BiFunction<C, C, Optional<C>> merge = (c1, c2) -> Optional.empty();
-        return new UndoManagerImpl<>(queue, invert, apply, merge, changeStream);
+        return new LinearUndoManager<>(queue, invert, apply, merge, changeStream);
     }
 
-    public static <C> UndoManager fixedSizeHistoryUndoManager(
+    public static <C> UndoManager<Object> fixedSizeHistoryLinearManager(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
             int capacity) {
         ChangeQueue<C> queue = new FixedSizeChangeQueue<C>(capacity);
-        return new UndoManagerImpl<>(queue, invert, apply, merge, changeStream);
+        return new LinearUndoManager<>(queue, invert, apply, merge, changeStream);
     }
 
-    public static UndoManagerFactory fixedSizeHistoryFactory(int capacity) {
+    public static UndoManagerFactory fixedSizeHistoryLinearFactory(int capacity) {
         return new UndoManagerFactory() {
             @Override
-            public <C> UndoManager create(
+            public <C> UndoManager<Object> createLinear(
                     EventStream<C> changeStream,
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply) {
-                return fixedSizeHistoryUndoManager(changeStream, invert, apply, capacity);
+                return fixedSizeHistoryLinearManager(changeStream, invert, apply, capacity);
             }
 
             @Override
-            public <C> UndoManager create(
+            public <C> UndoManager<Object> createLinear(
                     EventStream<C> changeStream,
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply,
                     BiFunction<C, C, Optional<C>> merge) {
-                return fixedSizeHistoryUndoManager(changeStream, invert, apply, merge, capacity);
+                return fixedSizeHistoryLinearManager(changeStream, invert, apply, merge, capacity);
             }
         };
     }
 
-    public static <C> UndoManager zeroHistoryUndoManager(EventStream<C> changeStream) {
+    public static <C> UndoManager<Object> zeroHistoryUndoManager(EventStream<C> changeStream) {
         ChangeQueue<C> queue = new ZeroSizeChangeQueue<>();
-        return new UndoManagerImpl<>(queue, c -> c, c -> {}, (c1, c2) -> Optional.empty(), changeStream);
+        return new LinearUndoManager<>(queue, c -> c, c -> {}, (c1, c2) -> Optional.empty(), changeStream);
     }
 
     public static UndoManagerFactory zeroHistoryFactory() {
         return new UndoManagerFactory() {
             @Override
-            public <C> UndoManager create(
+            public <C> UndoManager<Object> createLinear(
                     EventStream<C> changeStream,
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply) {
@@ -121,7 +121,7 @@ public interface UndoManagerFactory {
             }
 
             @Override
-            public <C> UndoManager create(
+            public <C> UndoManager<Object> createLinear(
                     EventStream<C> changeStream,
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply,

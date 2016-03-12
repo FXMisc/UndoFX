@@ -174,7 +174,7 @@ public class CircleProperties extends Application {
     private final Button redoBtn = new Button("Redo");
     private final Button saveBtn = new Button("Save");
     private final EventStream<CircleChange<?>> changes;
-    private final UndoManager undoManager;
+    private final UndoManager<Object> undoManager;
 
     {
         circle.fillProperty().bind(colorPicker.valueProperty());
@@ -188,18 +188,18 @@ public class CircleProperties extends Application {
         EventStream<CenterYChange> centerYChanges = changesOf(circle.centerYProperty()).map(c -> new CenterYChange(c));
         changes = merge(colorChanges, radiusChanges, centerXChanges, centerYChanges);
 
-        undoManager = UndoManagerFactory.unlimitedHistoryUndoManager(
+        undoManager = UndoManagerFactory.unlimitedHistoryLinearManager(
                     changes, // stream of changes to observe
                     c -> c.invert(), // function to invert a change
                     c -> c.redo(), // function to undo a change
                     (c1, c2) -> c1.mergeWith(c2)); // function to merge two changes
 
-        undoBtn.disableProperty().bind(Bindings.not(undoManager.undoAvailableProperty()));
-        redoBtn.disableProperty().bind(Bindings.not(undoManager.redoAvailableProperty()));
-        undoBtn.setOnAction(evt -> undoManager.undo());
-        redoBtn.setOnAction(evt -> undoManager.redo());
-        saveBtn.disableProperty().bind(undoManager.atMarkedPositionProperty());
-        saveBtn.setOnAction(evt -> { save(); undoManager.mark(); });
+        undoBtn.disableProperty().bind(Bindings.not(undoManager.undoAvailableProperty(null)));
+        redoBtn.disableProperty().bind(Bindings.not(undoManager.redoAvailableProperty(null)));
+        undoBtn.setOnAction(evt -> undoManager.undo(null));
+        redoBtn.setOnAction(evt -> undoManager.redo(null));
+        saveBtn.disableProperty().bind(undoManager.atMarkedPositionProperty(null));
+        saveBtn.setOnAction(evt -> { save(); undoManager.mark(null); });
     }
 
     private void save() {

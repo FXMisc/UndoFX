@@ -16,49 +16,49 @@ public class UndoManagerTest {
     public void testUndoInvertsTheChange() {
         EventSource<Integer> changes = new EventSource<>();
         Var<Integer> lastAction = Var.newSimpleVar(null);
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager um = UndoManagerFactory.unlimitedHistoryLinearManager(
                 changes, i -> -i, lastAction::setValue);
 
         changes.push(3);
         changes.push(7);
         assertNull(lastAction.getValue());
 
-        um.undo();
+        um.undo(null);
         assertEquals(-7, lastAction.getValue().intValue());
 
-        um.undo();
+        um.undo(null);
         assertEquals(-3, lastAction.getValue().intValue());
 
-        um.redo();
+        um.redo(null);
         assertEquals(3, lastAction.getValue().intValue());
 
-        um.redo();
+        um.redo(null);
         assertEquals(7, lastAction.getValue().intValue());
     }
 
     @Test
     public void testMark() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.fixedSizeHistoryUndoManager(
+        UndoManager um = UndoManagerFactory.fixedSizeHistoryLinearManager(
                 changes, c -> c, c -> {}, 4);
 
-        assertTrue(um.atMarkedPositionProperty().get());
+        assertTrue(um.atMarkedPositionProperty(null).get());
         changes.push(1);
-        assertFalse(um.atMarkedPositionProperty().get());
+        assertFalse(um.atMarkedPositionProperty(null).get());
         changes.push(2);
-        um.mark();
-        assertTrue(um.atMarkedPositionProperty().get());
+        um.mark(null);
+        assertTrue(um.atMarkedPositionProperty(null).get());
         changes.push(3);
         changes.push(4);
-        assertFalse(um.atMarkedPositionProperty().get());
-        um.undo();
-        um.undo();
-        assertTrue(um.atMarkedPositionProperty().get());
+        assertFalse(um.atMarkedPositionProperty(null).get());
+        um.undo(null);
+        um.undo(null);
+        assertTrue(um.atMarkedPositionProperty(null).get());
         changes.push(3);
         changes.push(4);
         changes.push(5); // overflow
         changes.push(6);
-        assertFalse(um.atMarkedPositionProperty().get());
+        assertFalse(um.atMarkedPositionProperty(null).get());
     }
 
     @Test
@@ -66,15 +66,15 @@ public class UndoManagerTest {
         EventSource<Integer> changes = new EventSource<>();
         UndoManager um = UndoManagerFactory.zeroHistoryUndoManager(changes);
 
-        assertTrue(um.atMarkedPositionProperty().get());
+        assertTrue(um.atMarkedPositionProperty(null).get());
         changes.push(1);
-        assertFalse(um.atMarkedPositionProperty().get());
+        assertFalse(um.atMarkedPositionProperty(null).get());
         changes.push(2);
-        um.mark();
-        assertTrue(um.atMarkedPositionProperty().get());
+        um.mark(null);
+        assertTrue(um.atMarkedPositionProperty(null).get());
         changes.push(3);
         changes.push(4);
-        assertFalse(um.atMarkedPositionProperty().get());
+        assertFalse(um.atMarkedPositionProperty(null).get());
     }
 
     /**
@@ -86,16 +86,16 @@ public class UndoManagerTest {
         EventSource<Integer> changes = new EventSource<>();
         UndoManager um = UndoManagerFactory.zeroHistoryUndoManager(changes);
 
-        um.atMarkedPositionProperty().get(); // atMarkedPositionProperty is now valid
+        um.atMarkedPositionProperty(null).get(); // atMarkedPositionProperty is now valid
 
         // we are going to expect two invalidations
         CountDownLatch latch = new CountDownLatch(2);
-        um.atMarkedPositionProperty().addListener(observable -> latch.countDown());
+        um.atMarkedPositionProperty(null).addListener(observable -> latch.countDown());
 
         changes.push(1); // atMarkedPositionProperty has been invalidated
         assertEquals(1, latch.getCount());
 
-        um.isAtMarkedPosition(); // we want to test whether this caused revalidation of atMarkedPositionProperty
+        um.isAtMarkedPosition(null); // we want to test whether this caused revalidation of atMarkedPositionProperty
 
         changes.push(2); // should have caused invalidation of atMarkedPositionProperty
         assertEquals(0, latch.getCount());
