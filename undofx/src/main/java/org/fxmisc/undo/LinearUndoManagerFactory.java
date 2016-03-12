@@ -12,7 +12,7 @@ import org.fxmisc.undo.impl.UnlimitedChangeQueue;
 import org.fxmisc.undo.impl.ZeroSizeChangeQueue;
 import org.reactfx.EventStream;
 
-public interface UndoManagerFactory {
+public interface LinearUndoManagerFactory {
 
     <C> UndoManager<Object> createLinear(
             EventStream<C> changeStream,
@@ -43,8 +43,8 @@ public interface UndoManagerFactory {
         return new LinearUndoManager<>(queue, invert, apply, merge, changeStream);
     }
 
-    public static UndoManagerFactory unlimitedHistoryLinearFactory() {
-        return new UndoManagerFactory() {
+    public static LinearUndoManagerFactory unlimitedHistoryLinearFactory() {
+        return new LinearUndoManagerFactory() {
             @Override
             public <C> UndoManager<Object> createLinear(
                     EventStream<C> changeStream,
@@ -84,8 +84,8 @@ public interface UndoManagerFactory {
         return new LinearUndoManager<>(queue, invert, apply, merge, changeStream);
     }
 
-    public static UndoManagerFactory fixedSizeHistoryLinearFactory(int capacity) {
-        return new UndoManagerFactory() {
+    public static LinearUndoManagerFactory fixedSizeHistoryLinearFactory(int capacity) {
+        return new LinearUndoManagerFactory() {
             @Override
             public <C> UndoManager<Object> createLinear(
                     EventStream<C> changeStream,
@@ -110,8 +110,8 @@ public interface UndoManagerFactory {
         return new LinearUndoManager<>(queue, c -> c, c -> {}, (c1, c2) -> Optional.empty(), changeStream);
     }
 
-    public static UndoManagerFactory zeroHistoryFactory() {
-        return new UndoManagerFactory() {
+    public static LinearUndoManagerFactory zeroHistoryFactory() {
+        return new LinearUndoManagerFactory() {
             @Override
             public <C> UndoManager<Object> createLinear(
                     EventStream<C> changeStream,
