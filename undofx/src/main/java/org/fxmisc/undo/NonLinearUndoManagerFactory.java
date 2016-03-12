@@ -9,7 +9,6 @@ import org.fxmisc.undo.impl.FixedSizeChangeQueue;
 import org.fxmisc.undo.impl.LinearUndoManager;
 import org.fxmisc.undo.impl.NonLinearUndoManager;
 import org.fxmisc.undo.impl.UnlimitedChangeQueue;
-import org.fxmisc.undo.impl.ZeroSizeChangeQueue;
 import org.reactfx.EventStream;
 
 /**
@@ -122,25 +121,4 @@ public interface NonLinearUndoManagerFactory {
         };
     }
 
-    public static <S, C> UndoManager<S> zeroHistoryUndoManager(S source, EventStream<C> changeStream) {
-        ChangeQueue<C> queue = new ZeroSizeChangeQueue<>();
-        return new NonLinearUndoManager<>(
-                source,
-                new LinearUndoManager<>(queue, c -> c, c -> {}, (c1, c2) -> Optional.empty(), changeStream)
-        );
-    }
-
-    public static NonLinearUndoManagerFactory zeroHistoryFactory() {
-        return new NonLinearUndoManagerFactory() {
-            @Override
-            public <S, C> UndoManager<S> createNonLinear(S source, EventStream<C> changeStream, Function<? super C, ? extends C> invert, Consumer<C> apply) {
-                return zeroHistoryUndoManager(source, changeStream);
-            }
-
-            @Override
-            public <S, C> UndoManager<S> createNonLinear(S source, EventStream<C> changeStream, Function<? super C, ? extends C> invert, Consumer<C> apply, BiFunction<C, C, Optional<C>> merge) {
-                return zeroHistoryUndoManager(source, changeStream);
-            }
-        };
-    }
 }
