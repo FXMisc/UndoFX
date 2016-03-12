@@ -14,7 +14,7 @@ import org.reactfx.EventStream;
 import org.reactfx.Subscription;
 import org.reactfx.SuspendableNo;
 
-public class UndoManagerImpl<C> implements UndoManager {
+public class LinearUndoManager<C> implements UndoManager<Object> {
 
     private class UndoPositionImpl implements UndoPosition {
         private final QueuePosition queuePos;
@@ -68,7 +68,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     private QueuePosition mark;
     private C expectedChange = null;
 
-    public UndoManagerImpl(
+    public LinearUndoManager(
             ChangeQueue<C> queue,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
@@ -82,14 +82,20 @@ public class UndoManagerImpl<C> implements UndoManager {
         this.subscription = changeSource.subscribe(this::changeObserved);
     }
 
+    /**
+     * Since this is a LinearUndoManager, this just calls {@link #close()}.
+     */
+    @Override
+    public void close(Object ignore) { close(); }
+
     @Override
     public void close() {
         subscription.unsubscribe();
     }
 
     @Override
-    public boolean undo() {
-        if(isUndoAvailable()) {
+    public boolean undo(Object ignore) {
+        if(isUndoAvailable(null)) {
             canMerge = false;
             performChange(invert.apply(queue.prev()));
             undoAvailable.invalidate();
@@ -102,8 +108,8 @@ public class UndoManagerImpl<C> implements UndoManager {
     }
 
     @Override
-    public boolean redo() {
-        if(isRedoAvailable()) {
+    public boolean redo(Object ignore) {
+        if(isRedoAvailable(null)) {
             canMerge = false;
             performChange(queue.next());
             undoAvailable.invalidate();
@@ -116,22 +122,22 @@ public class UndoManagerImpl<C> implements UndoManager {
     }
 
     @Override
-    public boolean isUndoAvailable() {
+    public boolean isUndoAvailable(Object ignore) {
         return undoAvailable.get();
     }
 
     @Override
-    public ObservableBooleanValue undoAvailableProperty() {
+    public ObservableBooleanValue undoAvailableProperty(Object ignore) {
         return undoAvailable;
     }
 
     @Override
-    public boolean isRedoAvailable() {
+    public boolean isRedoAvailable(Object ignore) {
         return redoAvailable.get();
     }
 
     @Override
-    public ObservableBooleanValue redoAvailableProperty() {
+    public ObservableBooleanValue redoAvailableProperty(Object ignore) {
         return redoAvailable;
     }
 
@@ -146,27 +152,32 @@ public class UndoManagerImpl<C> implements UndoManager {
     }
 
     @Override
-    public boolean isAtMarkedPosition() {
+    public boolean isAtMarkedPosition(Object ignore) {
         return atMarkedPosition.get();
     }
 
     @Override
-    public ObservableBooleanValue atMarkedPositionProperty() {
+    public ObservableBooleanValue atMarkedPositionProperty(Object ignore) {
         return atMarkedPosition;
     }
 
     @Override
-    public UndoPosition getCurrentPosition() {
+    public UndoPosition getCurrentPosition(Object ignore) {
         return new UndoPositionImpl(queue.getCurrentPosition());
     }
 
     @Override
-    public void preventMerge() {
+    public void mark(Object ignore) {
+        getCurrentPosition(null).mark();
+    }
+
+    @Override
+    public void preventMerge(Object ignore) {
         canMerge = false;
     }
 
     @Override
-    public void forgetHistory() {
+    public void forgetHistory(Object ignore) {
         queue.forgetHistory();
         undoAvailable.invalidate();
     }
