@@ -167,7 +167,9 @@ public class LinearUndoManager<C> implements UndoManager<Object> {
     }
 
     @Override
-    public void mark(Object ignore) { getCurrentPosition(null).mark(); }
+    public void mark(Object ignore) {
+        getCurrentPosition(null).mark();
+    }
 
     @Override
     public void preventMerge(Object ignore) {
