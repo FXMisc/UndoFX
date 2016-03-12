@@ -16,7 +16,7 @@ public class UndoManagerTest {
     public void testUndoInvertsTheChange() {
         EventSource<Integer> changes = new EventSource<>();
         Var<Integer> lastAction = Var.newSimpleVar(null);
-        UndoManager um = UndoManagerFactory.unlimitedHistoryLinearManager(
+        UndoManager<Object> um = UndoManagerFactory.unlimitedHistoryLinearManager(
                 changes, i -> -i, lastAction::setValue);
 
         changes.push(3);
@@ -39,7 +39,7 @@ public class UndoManagerTest {
     @Test
     public void testMark() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.fixedSizeHistoryLinearManager(
+        UndoManager<Object> um = UndoManagerFactory.fixedSizeHistoryLinearManager(
                 changes, c -> c, c -> {}, 4);
 
         assertTrue(um.atMarkedPositionProperty(null).get());
@@ -64,7 +64,7 @@ public class UndoManagerTest {
     @Test
     public void zeroHistoryUndoManagerMark() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.zeroHistoryUndoManager(changes);
+        UndoManager<Object> um = UndoManagerFactory.zeroHistoryUndoManager(changes);
 
         assertTrue(um.atMarkedPositionProperty(null).get());
         changes.push(1);
@@ -84,7 +84,7 @@ public class UndoManagerTest {
     @Test
     public void testAtMarkedPositionRevalidation() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.zeroHistoryUndoManager(changes);
+        UndoManager<Object> um = UndoManagerFactory.zeroHistoryUndoManager(changes);
 
         um.atMarkedPositionProperty(null).get(); // atMarkedPositionProperty is now valid
 
