@@ -5,6 +5,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.fxmisc.undo.impl.ChangeQueue;
+import org.fxmisc.undo.impl.ConsistentNonLinearUndoManager;
 import org.fxmisc.undo.impl.FixedSizeChangeQueue;
 import org.fxmisc.undo.impl.LinearUndoManager;
 import org.fxmisc.undo.impl.NonLinearUndoManager;
@@ -119,6 +120,16 @@ public interface NonLinearUndoManagerFactory {
                 return fixedSizeHistoryNonLinearManager(source, changeStream, invert, apply, merge, capacity);
             }
         };
+    }
+
+    public static <S, C> UndoManager<S> consistentUndoManager(
+            S initialSource,
+            ChangeQueue<C> queue,
+            Function<? super C, ? extends C> invert,
+            Consumer<C> apply,
+            BiFunction<C, C, Optional<C>> merge,
+            EventStream<C> changeSource) {
+        return new ConsistentNonLinearUndoManager<>(initialSource, queue, invert, apply, merge, changeSource);
     }
 
 }
