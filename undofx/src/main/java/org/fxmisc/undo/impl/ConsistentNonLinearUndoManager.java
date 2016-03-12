@@ -125,6 +125,10 @@ public class ConsistentNonLinearUndoManager<Source, C> implements UndoManager<So
         addFixedSizeHistoryManager(src, originalChangeSource, capacity);
     }
 
+    public int size() {
+        return manager.size();
+    }
+
     // Constructors
     private ConsistentNonLinearUndoManager(
             Function<? super C, ? extends C> invert,
