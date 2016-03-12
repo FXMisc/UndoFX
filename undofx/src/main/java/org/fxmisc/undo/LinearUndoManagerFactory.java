@@ -43,7 +43,7 @@ public interface LinearUndoManagerFactory {
         return new LinearUndoManager<>(queue, invert, apply, merge, changeStream);
     }
 
-    public static LinearUndoManagerFactory unlimitedHistoryLinearFactory() {
+    public static LinearUndoManagerFactory unlimitedHistoryFactory() {
         return new LinearUndoManagerFactory() {
             @Override
             public <C> UndoManager<Object> createLinear(
@@ -84,7 +84,7 @@ public interface LinearUndoManagerFactory {
         return new LinearUndoManager<>(queue, invert, apply, merge, changeStream);
     }
 
-    public static LinearUndoManagerFactory fixedSizeHistoryLinearFactory(int capacity) {
+    public static LinearUndoManagerFactory fixedSizeHistoryFactory(int capacity) {
         return new LinearUndoManagerFactory() {
             @Override
             public <C> UndoManager<Object> createLinear(

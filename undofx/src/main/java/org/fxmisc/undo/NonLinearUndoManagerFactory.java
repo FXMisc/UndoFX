@@ -52,7 +52,7 @@ public interface NonLinearUndoManagerFactory {
         return new NonLinearUndoManager<>(source, first);
     }
 
-    public static NonLinearUndoManagerFactory unlimitedHistoryNonLinearFactory() {
+    public static NonLinearUndoManagerFactory unlimitedHistoryFactory() {
         return new NonLinearUndoManagerFactory() {
             @Override
             public <S, C> UndoManager<S> createNonLinear(
@@ -99,7 +99,7 @@ public interface NonLinearUndoManagerFactory {
         return new NonLinearUndoManager<>(source, first);
     }
 
-    public static NonLinearUndoManagerFactory fixedSizeHistoryNonLinearFactory(int capacity) {
+    public static NonLinearUndoManagerFactory fixedSizeHistoryFactory(int capacity) {
         return new NonLinearUndoManagerFactory() {
             @Override
             public <S, C> UndoManager<S> createNonLinear(
