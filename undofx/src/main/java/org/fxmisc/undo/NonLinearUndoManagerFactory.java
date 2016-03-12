@@ -123,13 +123,13 @@ public interface NonLinearUndoManagerFactory {
     }
 
     public static <S, C> UndoManager<S> consistentUndoManager(
-            S initialSource,
-            ChangeQueue<C> queue,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
-            EventStream<C> changeSource) {
-        return new ConsistentNonLinearUndoManager<>(initialSource, queue, invert, apply, merge, changeSource);
+            EventStream<C> changeSource,
+            S initialSource,
+            ChangeQueue<C> queue) {
+        return new ConsistentNonLinearUndoManager<>(invert, apply, merge, changeSource, initialSource, queue);
     }
 
 }

@@ -125,18 +125,56 @@ public class ConsistentNonLinearUndoManager<Source, C> implements UndoManager<So
         addFixedSizeHistoryManager(src, originalChangeSource, capacity);
     }
 
-    // Constructor
-    public ConsistentNonLinearUndoManager(
-            Source initialSource,
-            ChangeQueue<C> queue,
+    // Constructors
+    private ConsistentNonLinearUndoManager(
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
-            EventStream<C> changeSource) {
+            EventStream<C> changeSource,
+            NonLinearUndoManager<Source, C> manager) {
         this.invert = invert;
         this.apply = apply;
         this.merge = merge;
         this.originalChangeSource = changeSource;
-        manager = new NonLinearUndoManager<Source, C>(initialSource, createLinear(queue, changeSource));
+        this.manager = manager;
+    }
+
+    public ConsistentNonLinearUndoManager(
+            Function<? super C, ? extends C> invert,
+            Consumer<C> apply,
+            BiFunction<C, C, Optional<C>> merge,
+            EventStream<C> changeSource,
+            Source initialSource,
+            ChangeQueue<C> queue) {
+        this(invert, apply, merge, changeSource, new NonLinearUndoManager<Source, C>(initialSource,
+                        new LinearUndoManager<C>(queue, invert, apply, merge, changeSource)
+        ));
+    }
+
+    public ConsistentNonLinearUndoManager(
+            Function<? super C, ? extends C> invert,
+            Consumer<C> apply,
+            BiFunction<C, C, Optional<C>> merge,
+            EventStream<C> changeSource,
+            Source initialSource,
+            ChangeQueue<C> queue,
+            int capacity) {
+        this(invert, apply, merge, changeSource, new NonLinearUndoManager<Source, C>(
+                initialSource, new LinearUndoManager<C>(queue, invert, apply, merge, changeSource), capacity
+        ));
+    }
+
+    public ConsistentNonLinearUndoManager(
+            Function<? super C, ? extends C> invert,
+            Consumer<C> apply,
+            BiFunction<C, C, Optional<C>> merge,
+            EventStream<C> changeSource,
+            Source initialSource,
+            ChangeQueue<C> queue,
+            int capacity,
+            float loadFactor) {
+        this(invert, apply, merge, changeSource, new NonLinearUndoManager<Source, C>(
+                initialSource, new LinearUndoManager<C>(queue, invert, apply, merge, changeSource), capacity, loadFactor
+        ));
     }
 }
