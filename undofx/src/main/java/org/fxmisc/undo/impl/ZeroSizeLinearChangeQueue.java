@@ -2,7 +2,7 @@ package org.fxmisc.undo.impl;
 
 import java.util.NoSuchElementException;
 
-public class ZeroSizeChangeQueue<C> implements ChangeQueue<C> {
+public class ZeroSizeLinearChangeQueue<C> implements ChangeQueue<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final long rev;
@@ -13,12 +13,12 @@ public class ZeroSizeChangeQueue<C> implements ChangeQueue<C> {
 
         @Override
         public boolean isValid() {
-            return rev == ZeroSizeChangeQueue.this.revision;
+            return rev == ZeroSizeLinearChangeQueue.this.revision;
         }
 
         @Override
         public boolean equals(Object other) {
-            if(other instanceof ZeroSizeChangeQueue.QueuePositionImpl) {
+            if(other instanceof ZeroSizeLinearChangeQueue.QueuePositionImpl) {
                 @SuppressWarnings("unchecked")
                 QueuePositionImpl otherPos = (QueuePositionImpl) other;
                 return getQueue() == otherPos.getQueue() && rev == otherPos.rev;
@@ -27,8 +27,8 @@ public class ZeroSizeChangeQueue<C> implements ChangeQueue<C> {
             }
         }
 
-        private ZeroSizeChangeQueue<C> getQueue() {
-            return ZeroSizeChangeQueue.this;
+        private ZeroSizeLinearChangeQueue<C> getQueue() {
+            return ZeroSizeLinearChangeQueue.this;
         }
     }
 
