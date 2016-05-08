@@ -6,6 +6,7 @@ import org.reactfx.SuspendableNo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C> {
 
@@ -49,23 +50,24 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     final int getId() { return id; }
 
     private final DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph;
-    private final FilteredList<NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C>> changes;
+    private final FilteredList<NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C>> allChanges;
+    private final FilteredList<NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C>> validChanges;
 
     // TODO: Still need to figure out how to adjust Current Position due to its relative position now
     private int currentPosition = 0;
-    private long revision = 0;
-    private long zeroPositionRevision = revision;
+    private long zeroPositionRevision = 0;
     private int forgottenCount = 0;
 
     public NonLinearUnlimitedChangeQueue(int id, DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph) {
         this.id = id;
         this.graph = graph;
-        changes = graph.getChangesFor(this);
+        allChanges = graph.allChangesFor(this);
+        validChanges = graph.validChangesFor(this);
     }
 
     @Override
     public boolean hasNext() {
-        return currentPosition < changes.size();
+        return currentPosition < validChanges.size();
     }
 
     @Override
@@ -75,24 +77,23 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
 
     @Override
     public C next() {
-        return changes.get(currentPosition++).getChange();
+        return validChanges.get(currentPosition++).getChange();
     }
 
     @Override
     public C prev() {
-        NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> previous = changes.get(--currentPosition);
-        return graph.getValidChangeFor(previous, () -> revision++).getChange();
+        NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> previous = validChanges.get(--currentPosition);
+        return graph.getValidChange(previous).getChange();
     }
 
     @Override
     @SafeVarargs
     public final void push(C... changes) {
-        List<NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C>> redoList = this.changes.subList(currentPosition, this.changes.size());
+        List<NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C>> redoList = allChanges.subList(currentPosition, allChanges.size());
         List<NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C>> newChanges = new ArrayList<>(changes.length);
-        for (C c : changes) {
-            NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> nonLinearC = new NonLinearChange<>(this, c, ++revision);
-            newChanges.add(nonLinearC);
-        }
+        Stream.of(changes)
+                .map(c -> graph.createChange(this, c))
+                .forEach(newChanges::add);
         graph.push(redoList, newChanges);
         currentPosition += changes.length;
     }
@@ -107,8 +108,8 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     public void forgetHistory() {
         if(currentPosition > 0) {
             zeroPositionRevision = revisionForPosition(currentPosition);
-            int newSize = changes.size() - currentPosition;
-            graph.forgetChanges(changes.subList(0, newSize));
+            int newSize = allChanges.size() - currentPosition;
+            graph.forgetChanges(allChanges.subList(0, newSize));
             forgottenCount += currentPosition;
             currentPosition = 0;
         }
@@ -118,7 +119,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     private long revisionForPosition(int position) {
         return position == 0
                 ? zeroPositionRevision
-                : changes.get(position - 1).getRevision();
+                : validChanges.get(position - 1).getRevision();
     }
 
     // TODO: Figure out best way to implement equals here... Perhaps using DAG in some way?

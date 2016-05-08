@@ -1,6 +1,6 @@
 package org.fxmisc.undo.impl;
 
-public class NonLinearChange<S extends ChangeQueue<C>, C> extends RevisionedChange<C> {
+public class NonLinearChange<S extends NonLinearChangeQueue<C>, C> extends RevisionedChange<C> {
 
     private final S source;
 
