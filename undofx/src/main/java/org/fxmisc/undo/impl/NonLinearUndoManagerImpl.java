@@ -1,6 +1,5 @@
 package org.fxmisc.undo.impl;
 
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
 import org.fxmisc.undo.UndoManager;
 import org.reactfx.EventStream;
@@ -15,9 +14,9 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
 
     // TODO: need to implement this correctly (copied from LinearUndoManagerImpl)
     private class UndoPositionImpl implements UndoPosition {
-        private final ChangeQueue.QueuePosition queuePos;
+        private final NonLinearChangeQueue.QueuePosition queuePos;
 
-        UndoPositionImpl(ChangeQueue.QueuePosition queuePos) {
+        UndoPositionImpl(NonLinearChangeQueue.QueuePosition queuePos) {
             this.queuePos = queuePos;
         }
 
@@ -25,7 +24,8 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
         public void mark() {
             mark = queuePos;
             canMerge = false;
-            atMarkedPosition.invalidate();
+            // TODO: this should be moved to / handled somehow in ChangeQueue
+            atMarkedPositionProperty().invalidate();
         }
 
         @Override
@@ -39,30 +39,9 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
     private final BiFunction<C, C, Optional<C>> merge;
     private final Subscription subscription;
 
-    private final BooleanBinding undoAvailable = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return queue.hasPrev();
-        }
-    };
-
-    private final BooleanBinding redoAvailable = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return queue.hasNext();
-        }
-    };
-
-    private final BooleanBinding atMarkedPosition = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return mark.equals(queue.getCurrentPosition());
-        }
-    };
-
     private NonLinearUnlimitedChangeQueue<C> queue;
     private boolean canMerge;
-    private ChangeQueue.QueuePosition mark;
+    private NonLinearChangeQueue.QueuePosition mark;
     private C expectedChange = null;
 
     public NonLinearUndoManagerImpl(
@@ -81,6 +60,7 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
 
     @Override
     public void close() {
+        queue.close();
         subscription.unsubscribe();
     }
 
@@ -88,10 +68,7 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
     public boolean undo() {
         if(isUndoAvailable()) {
             canMerge = false;
-            performChange(invert.apply(queue.prev()));
-            undoAvailable.invalidate();
-            redoAvailable.invalidate();
-            atMarkedPosition.invalidate();
+            performUndo(queue.prev());
             return true;
         } else {
             return false;
@@ -102,10 +79,7 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
     public boolean redo() {
         if(isRedoAvailable()) {
             canMerge = false;
-            performChange(queue.next());
-            undoAvailable.invalidate();
-            redoAvailable.invalidate();
-            atMarkedPosition.invalidate();
+            performRedo(queue.next());
             return true;
         } else {
             return false;
@@ -115,22 +89,22 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
 
     @Override
     public boolean isUndoAvailable() {
-        return undoAvailable.get();
+        return queue.isUndoAvailable();
     }
 
     @Override
     public ObservableBooleanValue undoAvailableProperty() {
-        return undoAvailable;
+        return queue.undoAvailableProperty();
     }
 
     @Override
     public boolean isRedoAvailable() {
-        return redoAvailable.get();
+        return queue.isRedoAvailable();
     }
 
     @Override
     public ObservableBooleanValue redoAvailableProperty() {
-        return redoAvailable;
+        return queue.redoAvailableProperty();
     }
 
     @Override
@@ -145,12 +119,12 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
 
     @Override
     public boolean isAtMarkedPosition() {
-        return atMarkedPosition.get();
+        return queue.isAtMarkedPosition();
     }
 
     @Override
     public ObservableBooleanValue atMarkedPositionProperty() {
-        return atMarkedPosition;
+        return queue.atMarkedPositionProperty();
     }
 
     @Override
@@ -166,7 +140,16 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
     @Override
     public void forgetHistory() {
         queue.forgetHistory();
-        undoAvailable.invalidate();
+    }
+
+    private void performUndo(C change) {
+        performChange(invert.apply(change));
+        queue.addRedoableChange(change);
+    }
+
+    private void performRedo(C change) {
+        performChange(change);
+        queue.pushRedo(change);
     }
 
     private void performChange(C change) {
@@ -176,7 +159,7 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
 
     private void changeObserved(C change) {
         if(expectedChange == null) {
-            addChange(change);
+            addNewChange(change);
         } else if(expectedChange.equals(change)) {
             expectedChange = null;
         } else {
@@ -187,17 +170,14 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
     }
 
     @SuppressWarnings("unchecked")
-    private void addChange(C change) {
+    private void addNewChange(C change) {
         if(canMerge && queue.hasPrev() && queue.committedLastChange()) {
             C prev = queue.prev();
-            queue.push(merge(prev, change));
+            queue.pushChanges(merge(prev, change));
         } else {
-            queue.push(change);
+            queue.pushChanges(change);
         }
         canMerge = true;
-        undoAvailable.invalidate();
-        redoAvailable.invalidate();
-        atMarkedPosition.invalidate();
     }
 
     @SuppressWarnings("unchecked")

@@ -12,9 +12,7 @@ public class NonLinearChange<S extends NonLinearChangeQueue<C>, C> extends Revis
     public final S getSource() { return source; }
 
     public NonLinearChange<S, C> updateChange(C change) {
-        return change.equals(getChange())
-                ? this
-                : new NonLinearChange<>(source, change, getRevision());
+        return new NonLinearChange<>(source, change, getRevision());
     }
 
     // TODO: Implement equals
