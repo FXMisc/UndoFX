@@ -1,12 +1,8 @@
 package org.fxmisc.undo.impl;
 
 import javafx.beans.binding.BooleanBinding;
-import javafx.collections.transformation.FilteredList;
 import org.reactfx.Subscription;
 import org.reactfx.SuspendableNo;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C> {
 
@@ -34,14 +30,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     // TODO: Test this
     // A replacement for UndoManager#canMerge: a merge should only be able to occur when this queue made the last change.
     // Otherwise, it might be outdated or conflict with some other change from another queue.
-    private final BooleanBinding committedLastChange = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return graph.getLastChangeSource().equals(NonLinearUnlimitedChangeQueue.this);
-        }
-    };
-    public final BooleanBinding committedLastChangeProperty() { return committedLastChange; }
-    public final boolean committedLastChange() { return committedLastChange.get(); }
+    public final boolean committedLastChange() { return graph.wasLastChangePerformedBy(this); }
 
     private final BooleanBinding undoAvailable = new BooleanBinding() {
         @Override
@@ -79,13 +68,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     public SuspendableNo performingActionProperty() { return graph.performingActionProperty(); }
     public boolean isPerformingAction() { return graph.isPerformingAction(); }
 
-    // TODO: Should this still be used for equals? (NonLinearUndoManagerFactory can pass a new ID each time or something, but there may be better way
-    private final int id;
-    public final int getId() { return id; }
-
     private final DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph;
-    private final FilteredList<NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C>> allChanges;
-    private final FilteredList<NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C>> validChanges;
 
     private final Subscription subscription;
 
@@ -93,12 +76,9 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     private ChangeQueue.QueuePosition mark;
 
 
-    public NonLinearUnlimitedChangeQueue(int id, DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph) {
-        this.id = id;
+    public NonLinearUnlimitedChangeQueue(DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph) {
         this.graph = graph;
-        graph.addRedoableListFor(this);
-        allChanges = graph.allChangesFor(this);
-        validChanges = graph.validChangesFor(this);
+        graph.registerRedoableListFor(this);
 
         this.subscription = graph.performingActionProperty().values()
                 .filter(stillPerformingAction -> !stillPerformingAction)
@@ -118,7 +98,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
 
     @Override
     public boolean hasPrev() {
-        return !validChanges.isEmpty();
+        return graph.hasPrevFor(this);
     }
 
     @Override
@@ -128,12 +108,11 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
 
     @Override
     public C prev() {
-        NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> previous = validChanges.get(validChanges.size() - 1);
-        return graph.getValidChange(previous).getChange();
+        return graph.prevFor(this);
     }
 
     public void addRedoableChange(C change) {
-        graph.addRedoableChange(this, change);
+        graph.addRedoableChangeFor(this, change);
     }
 
     @SafeVarargs
@@ -153,36 +132,15 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
 
     @Override
     public void forgetHistory() {
-        if(allChanges.size() > 1 && validChanges.size() > 1) {
-            List<NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C>> forgottenChanges = new ArrayList<>();
-            NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> currentChange = allChanges.get(0);
-            NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> lastValidChange = validChanges.get(validChanges.size() - 1);
-            int i = 1;
-            while (!lastValidChange.equals(currentChange)) {
-                forgottenChanges.add(currentChange);
-                currentChange = allChanges.get(i++);
-            }
-
-            graph.forgetChanges(forgottenChanges);
-            forgottenCount += forgottenChanges.size();
+        graph.forgetHistoryFor(this, forgottenSize -> {
+            forgottenCount += forgottenSize;
             undoAvailable.invalidate();
-        }
+        });
     }
 
     public final void close() {
         subscription.unsubscribe();
         graph.closeDown(this);
-    }
-
-    // TODO: Figure out best way to implement equals here... Perhaps using DAG in some way?
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof NonLinearUnlimitedChangeQueue) {
-            NonLinearUnlimitedChangeQueue that = (NonLinearUnlimitedChangeQueue) obj;
-            return this.id == that.getId();
-        } else {
-            return false;
-        }
     }
 
 }

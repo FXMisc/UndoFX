@@ -25,7 +25,7 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
             mark = queuePos;
             canMerge = false;
             // TODO: this should be moved to / handled somehow in ChangeQueue
-            atMarkedPositionProperty().invalidate();
+            // atMarkedPositionProperty().invalidate();
         }
 
         @Override

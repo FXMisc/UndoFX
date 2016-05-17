@@ -1,5 +1,7 @@
 package org.fxmisc.undo.impl;
 
+import java.util.Objects;
+
 public class NonLinearChange<S extends NonLinearChangeQueue<C>, C> extends RevisionedChange<C> {
 
     private final S source;
@@ -15,15 +17,25 @@ public class NonLinearChange<S extends NonLinearChangeQueue<C>, C> extends Revis
         return new NonLinearChange<>(source, change, getRevision());
     }
 
-    // TODO: Implement equals
     @Override
     public boolean equals(Object obj) {
-        return super.equals(obj);
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof NonLinearChange)) {
+            return false;
+        }
+        NonLinearChange that = (NonLinearChange) obj;
+        return Objects.equals(this.source, that.source)
+                && Objects.equals(this.getChange(), that.getChange())
+                && this.getRevision() == that.getRevision();
     }
 
-    // TODO: implement hashcode
     @Override
     public int hashCode() {
-        return super.hashCode();
+        int result = 31 * source.hashCode();
+        result = 31 * result + getChange().hashCode();
+        result = 31 * result + Long.hashCode(getRevision());
+        return result;
     }
 }

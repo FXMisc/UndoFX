@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 public interface DirectedAcyclicUndoGraph<S extends NonLinearChangeQueue<C>, C> {
 
-    NonLinearChange<S, C> getValidChange(NonLinearChange<S, C> nonLinearChange);
+    NonLinearChange<S, C> getValidFormOf(NonLinearChange<S, C> nonLinearChange);
 
     SuspendableNo performingActionProperty();
 
