@@ -11,7 +11,7 @@ public class RedoableChangesList<Source extends NonLinearChangeQueue<C>, C> {
 
     private final Predicate<C> validator;
     private final BiFunction<C, C, C> updater;
-    private final Function<C, C> bubbler;
+    private final Function<C, BubbledResult<C>> bubbler;
 
     private final List<C> all = new ArrayList<>(1);
     private List<C> valid = new ArrayList<>(1);
@@ -20,7 +20,7 @@ public class RedoableChangesList<Source extends NonLinearChangeQueue<C>, C> {
     public final Source getSource() { return source; }
 
     public RedoableChangesList(Source source, BiFunction<C, C, C> updater, Predicate<C> validator,
-                               Function<C, C> bubbler) {
+                               Function<C, BubbledResult<C>> bubbler) {
         this.source = source;
         this.updater = updater;
         this.validator = validator;
@@ -46,8 +46,15 @@ public class RedoableChangesList<Source extends NonLinearChangeQueue<C>, C> {
 
     public final C getLastValidChange() {
         C change = valid.remove(valid.size() - 1);
-        all.remove(change);
-        return bubbler.apply(change);
+        BubbledResult<C> result = bubbler.apply(change);
+        if (result.getBuried() == null) {
+            all.remove(change);
+            return change;
+        } else {
+            int index = all.indexOf(change);
+            all.set(index, result.getBuried());
+            return result.getBubbled();
+        }
     }
 
     public final boolean isEmpty() {

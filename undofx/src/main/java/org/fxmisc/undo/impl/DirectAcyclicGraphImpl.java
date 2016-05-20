@@ -37,7 +37,7 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
 
     private final BiFunction<C, C, C> redoUpdater;
     private final Predicate<C> isValidRedo;
-    private final Function<C, C> redoBubbler;
+    private final Function<C, BubbledResult<C>> redoBubbler;
 
     private long revision = 0;
 
@@ -49,7 +49,7 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
             TriFunction<C, C, BubbledResult<C>, C> postBubbleUndoUpdater,
             BiFunction<C, C, C> redoUpdater,
             Predicate<C> isValidRedo,
-            Function<C, C> redoBubbler) {
+            Function<C, BubbledResult<C>> redoBubbler) {
         this.firstDependsOnSecond = firstDependsOnSecond;
 
         this.undoUpdater = undoUpdater;
