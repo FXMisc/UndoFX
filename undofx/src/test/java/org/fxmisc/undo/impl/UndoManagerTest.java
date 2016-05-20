@@ -4,8 +4,8 @@ import static org.junit.Assert.*;
 
 import java.util.concurrent.CountDownLatch;
 
+import org.fxmisc.undo.LinearUndoManagerFactory;
 import org.fxmisc.undo.UndoManager;
-import org.fxmisc.undo.UndoManagerFactory;
 import org.junit.Test;
 import org.reactfx.EventSource;
 import org.reactfx.value.Var;
@@ -16,7 +16,7 @@ public class UndoManagerTest {
     public void testUndoInvertsTheChange() {
         EventSource<Integer> changes = new EventSource<>();
         Var<Integer> lastAction = Var.newSimpleVar(null);
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager um = LinearUndoManagerFactory.unlimitedHistoryUndoManager(
                 changes, i -> -i, lastAction::setValue);
 
         changes.push(3);
@@ -39,7 +39,7 @@ public class UndoManagerTest {
     @Test
     public void testMark() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.fixedSizeHistoryUndoManager(
+        UndoManager um = LinearUndoManagerFactory.fixedSizeHistoryUndoManager(
                 changes, c -> c, c -> {}, 4);
 
         assertTrue(um.atMarkedPositionProperty().get());
@@ -64,7 +64,7 @@ public class UndoManagerTest {
     @Test
     public void zeroHistoryUndoManagerMark() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.zeroHistoryUndoManager(changes);
+        UndoManager um = LinearUndoManagerFactory.zeroHistoryUndoManager(changes);
 
         assertTrue(um.atMarkedPositionProperty().get());
         changes.push(1);
@@ -84,7 +84,7 @@ public class UndoManagerTest {
     @Test
     public void testAtMarkedPositionRevalidation() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.zeroHistoryUndoManager(changes);
+        UndoManager um = LinearUndoManagerFactory.zeroHistoryUndoManager(changes);
 
         um.atMarkedPositionProperty().get(); // atMarkedPositionProperty is now valid
 
