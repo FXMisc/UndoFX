@@ -6,30 +6,33 @@ import org.reactfx.SuspendableNo;
 
 public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C> {
 
-    // TODO: This still needs to be properly implemented (copied from UnlimitedLinearChangeQueue
-    private class NonLinearQueuePositionImpl implements ChangeQueue.QueuePosition {
-        private final int allTimePos;
-        private final long rev;
+    private class NonLinearQueuePositionImpl implements NonLinearChangeQueue.QueuePosition {
+        private final NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> change;
 
-        NonLinearQueuePositionImpl(int allTimePos, long rev) {
-            this.allTimePos = allTimePos;
-            this.rev = rev;
+        NonLinearQueuePositionImpl(NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> change) {
+            this.change = change;
         }
 
         @Override
         public boolean isValid() {
-            return false;
+            // is valid when the given change is found in the queue's undos or redos list
+            return graph.isQueuePositionValid(NonLinearUnlimitedChangeQueue.this, change);
         }
 
         @Override
         public boolean equals(Object obj) {
-            return super.equals(obj);
+            if (obj instanceof NonLinearUnlimitedChangeQueue.NonLinearQueuePositionImpl) {
+                @SuppressWarnings("unchecked")
+                NonLinearQueuePositionImpl otherPos = (NonLinearQueuePositionImpl) obj;
+                return getQueue() == otherPos.getQueue() && change == otherPos.change;
+            } else {
+                return false;
+            }
         }
+
+        private NonLinearUnlimitedChangeQueue<C> getQueue() { return NonLinearUnlimitedChangeQueue.this; }
     }
 
-    // TODO: Test this
-    // A replacement for UndoManager#canMerge: a merge should only be able to occur when this queue made the last change.
-    // Otherwise, it might be outdated or conflict with some other change from another queue.
     public final boolean committedLastChange() { return graph.wasLastChangePerformedBy(this); }
 
     private final BooleanBinding undoAvailable = new BooleanBinding() {
@@ -73,13 +76,13 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     private final Subscription subscription;
 
     private int forgottenCount = 0;
-    private ChangeQueue.QueuePosition mark;
-
+    private NonLinearChangeQueue.QueuePosition mark;
 
     public NonLinearUnlimitedChangeQueue(DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph) {
         this.graph = graph;
         graph.registerRedoableListFor(this);
 
+        this.mark = getCurrentPosition();
         this.subscription = graph.performingActionProperty().values()
                 .filter(stillPerformingAction -> !stillPerformingAction)
                 .subscribe(ignore -> this.invalidateProperties());
@@ -127,7 +130,12 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     // TODO: implement this correctly
     @Override
     public NonLinearChangeQueue.QueuePosition getCurrentPosition() {
-        return null;
+        return new NonLinearQueuePositionImpl(graph.getLastChangeFor(this));
+    }
+
+    public void mark() {
+        mark = getCurrentPosition();
+        atMarkedPosition.invalidate();
     }
 
     @Override

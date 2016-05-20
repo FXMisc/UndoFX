@@ -57,6 +57,10 @@ public class RedoableChangesList<Source extends NonLinearChangeQueue<C>, C> {
         }
     }
 
+    public final boolean contains(C change) {
+        return all.contains(change);
+    }
+
     public final boolean isEmpty() {
         return valid.isEmpty();
     }

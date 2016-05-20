@@ -12,7 +12,6 @@ import java.util.function.Function;
 
 public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> implements UndoManager {
 
-    // TODO: need to implement this correctly (copied from LinearUndoManagerImpl)
     private class UndoPositionImpl implements UndoPosition {
         private final NonLinearChangeQueue.QueuePosition queuePos;
 
@@ -22,10 +21,8 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
 
         @Override
         public void mark() {
-            mark = queuePos;
             canMerge = false;
-            // TODO: this should be moved to / handled somehow in ChangeQueue
-            // atMarkedPositionProperty().invalidate();
+            queue.mark();
         }
 
         @Override
@@ -41,7 +38,6 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
 
     private NonLinearUnlimitedChangeQueue<C> queue;
     private boolean canMerge;
-    private NonLinearChangeQueue.QueuePosition mark;
     private C expectedChange = null;
 
     public NonLinearUndoManagerImpl(
@@ -54,7 +50,6 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
         this.invert = invert;
         this.apply = apply;
         this.merge = merge;
-        this.mark = queue.getCurrentPosition();
         this.subscription = changeSource.subscribe(this::changeObserved);
     }
 
@@ -85,7 +80,6 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
             return false;
         }
     }
-
 
     @Override
     public boolean isUndoAvailable() {
