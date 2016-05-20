@@ -127,7 +127,6 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
         graph.pushRedo(this, change);
     }
 
-    // TODO: implement this correctly
     @Override
     public NonLinearChangeQueue.QueuePosition getCurrentPosition() {
         return new NonLinearQueuePositionImpl(graph.getLastChangeFor(this));
@@ -140,10 +139,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
 
     @Override
     public void forgetHistory() {
-        graph.forgetHistoryFor(this, forgottenSize -> {
-            forgottenCount += forgottenSize;
-            undoAvailable.invalidate();
-        });
+        graph.forgetHistoryFor(this, (ignore) -> undoAvailable.invalidate());
     }
 
     public final void close() {

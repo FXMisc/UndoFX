@@ -113,29 +113,17 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         });
     }
 
-    // TODO: all history from start -> current position should be forgotten, not next current valid change
-    public void forgetHistoryFor(Source source, Consumer<Integer> ifForgotten) {
-        if (hasPrevFor(source)) {
-            List<NonLinearChange<Source, C>> history = allChanges.stream()
-                    .filter(c -> c.getSource() == source)
-                    .collect(Collectors.toCollection(ArrayList::new));
+    public void forgetHistoryFor(Source source, Consumer<Void> ifForgotten) {
+        List<NonLinearChange<Source, C>> history = allChanges.stream()
+                .filter(c -> c.getSource() == source)
+                .collect(Collectors.toCollection(ArrayList::new));
 
-            NonLinearChange<Source, C> lastValidChange = null;
-            for (int i = validChanges.size() - 1; i >= 0; i--) {
-                lastValidChange = validChanges.get(i);
-                if (lastValidChange.getSource() == source) {
-                    break;
-                }
-            }
-
-            int index = history.indexOf(lastValidChange);
-            List<NonLinearChange<Source, C>> forgotten = history.subList(0, index);
-            forgotten.forEach(c -> {
+        if (!history.isEmpty()) {
+            history.subList(0, history.size() - 1).forEach(c -> {
                 removeRelatedEdgesOf(c);
                 allChanges.remove(c);
             });
-
-            ifForgotten.accept(forgotten.size());
+            ifForgotten.accept(null);
         }
     }
 
