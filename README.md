@@ -120,7 +120,7 @@ There is also a "Save" button that fakes a save operation. It is enabled only wh
 
 ### Source code
 
-[CircleProperties.java](https://github.com/TomasMikula/UndoFX/blob/master/undofx-demos/src/main/java/org/fxmisc/undo/demo/CircleProperties.java#L127-L149). See the highlighted lines for the gist of how the undo functionality is set up.
+[CircleProperties.java](https://github.com/TomasMikula/UndoFX/blob/master/undofx-demos/src/main/java/org/fxmisc/undo/demo/CircleProperties.java#L180-L202). See the highlighted lines for the gist of how the undo functionality is set up.
 
 
 Requirements
