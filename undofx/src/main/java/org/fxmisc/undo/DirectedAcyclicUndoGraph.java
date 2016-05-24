@@ -6,8 +6,6 @@ import org.reactfx.SuspendableNo;
 
 public interface DirectedAcyclicUndoGraph<S extends NonLinearChangeQueue<C>, C> {
 
-    NonLinearChange<S, C> getValidFormOf(NonLinearChange<S, C> nonLinearChange);
-
     SuspendableNo performingActionProperty();
 
     default boolean isPerformingAction() {
