@@ -23,7 +23,7 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 import org.fxmisc.undo.UndoManager;
-import org.fxmisc.undo.UndoManagerFactory;
+import org.fxmisc.undo.LinearUndoManagerFactory;
 import org.reactfx.Change;
 import org.reactfx.EventStream;
 
@@ -188,7 +188,7 @@ public class CircleProperties extends Application {
         EventStream<CenterYChange> centerYChanges = changesOf(circle.centerYProperty()).map(c -> new CenterYChange(c));
         changes = merge(colorChanges, radiusChanges, centerXChanges, centerYChanges);
 
-        undoManager = UndoManagerFactory.unlimitedHistoryUndoManager(
+        undoManager = LinearUndoManagerFactory.unlimitedHistoryUndoManager(
                     changes, // stream of changes to observe
                     c -> c.invert(), // function to invert a change
                     c -> c.redo(), // function to undo a change
