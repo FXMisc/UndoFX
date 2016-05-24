@@ -75,7 +75,6 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
 
     private final Subscription subscription;
 
-    private int forgottenCount = 0;
     private ChangeQueue.QueuePosition mark;
 
     public NonLinearUnlimitedChangeQueue(DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph) {
