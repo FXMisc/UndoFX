@@ -1,33 +1,28 @@
 package org.fxmisc.undo.impl;
 
+import javafx.beans.value.ObservableBooleanValue;
+import org.fxmisc.undo.UndoManager;
+import org.reactfx.EventStream;
+import org.reactfx.Subscription;
+
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.value.ObservableBooleanValue;
-
-import org.fxmisc.undo.UndoManager;
-import org.fxmisc.undo.impl.ChangeQueue.QueuePosition;
-import org.reactfx.EventStream;
-import org.reactfx.Subscription;
-import org.reactfx.SuspendableNo;
-
-public class UndoManagerImpl<C> implements UndoManager {
+public class NonLinearUndoManagerImpl<C> implements UndoManager {
 
     private class UndoPositionImpl implements UndoPosition {
-        private final QueuePosition queuePos;
+        private final ChangeQueue.QueuePosition queuePos;
 
-        UndoPositionImpl(QueuePosition queuePos) {
+        UndoPositionImpl(ChangeQueue.QueuePosition queuePos) {
             this.queuePos = queuePos;
         }
 
         @Override
         public void mark() {
-            mark = queuePos;
             canMerge = false;
-            atMarkedPosition.invalidate();
+            queue.mark();
         }
 
         @Override
@@ -36,40 +31,17 @@ public class UndoManagerImpl<C> implements UndoManager {
         }
     }
 
-    private final ChangeQueue<C> queue;
     private final Function<? super C, ? extends C> invert;
     private final Consumer<C> apply;
     private final BiFunction<C, C, Optional<C>> merge;
     private final Subscription subscription;
-    private final SuspendableNo performingAction = new SuspendableNo();
 
-    private final BooleanBinding undoAvailable = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return queue.hasPrev();
-        }
-    };
-
-    private final BooleanBinding redoAvailable = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return queue.hasNext();
-        }
-    };
-
-    private final BooleanBinding atMarkedPosition = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return mark.equals(queue.getCurrentPosition());
-        }
-    };
-
+    private NonLinearChangeQueue<C> queue;
     private boolean canMerge;
-    private QueuePosition mark;
     private C expectedChange = null;
 
-    public UndoManagerImpl(
-            ChangeQueue<C> queue,
+    public NonLinearUndoManagerImpl(
+            NonLinearChangeQueue<C> queue,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
@@ -78,12 +50,12 @@ public class UndoManagerImpl<C> implements UndoManager {
         this.invert = invert;
         this.apply = apply;
         this.merge = merge;
-        this.mark = queue.getCurrentPosition();
         this.subscription = changeSource.subscribe(this::changeObserved);
     }
 
     @Override
     public void close() {
+        queue.close();
         subscription.unsubscribe();
     }
 
@@ -91,10 +63,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     public boolean undo() {
         if(isUndoAvailable()) {
             canMerge = false;
-            performChange(invert.apply(queue.prev()));
-            undoAvailable.invalidate();
-            redoAvailable.invalidate();
-            atMarkedPosition.invalidate();
+            performUndo(queue.prev());
             return true;
         } else {
             return false;
@@ -105,10 +74,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     public boolean redo() {
         if(isRedoAvailable()) {
             canMerge = false;
-            performChange(queue.next());
-            undoAvailable.invalidate();
-            redoAvailable.invalidate();
-            atMarkedPosition.invalidate();
+            performRedo(queue.next());
             return true;
         } else {
             return false;
@@ -117,47 +83,47 @@ public class UndoManagerImpl<C> implements UndoManager {
 
     @Override
     public boolean isUndoAvailable() {
-        return undoAvailable.get();
+        return queue.isUndoAvailable();
     }
 
     @Override
     public ObservableBooleanValue undoAvailableProperty() {
-        return undoAvailable;
+        return queue.undoAvailableProperty();
     }
 
     @Override
     public boolean isRedoAvailable() {
-        return redoAvailable.get();
+        return queue.isRedoAvailable();
     }
 
     @Override
     public ObservableBooleanValue redoAvailableProperty() {
-        return redoAvailable;
+        return queue.redoAvailableProperty();
     }
 
     @Override
     public boolean isPerformingAction() {
-        return performingAction.get();
+        return queue.isPerformingAction();
     }
 
     @Override
     public ObservableBooleanValue performingActionProperty() {
-        return performingAction;
+        return queue.performingActionProperty();
     }
 
     @Override
     public boolean isAtMarkedPosition() {
-        return atMarkedPosition.get();
+        return queue.isAtMarkedPosition();
     }
 
     @Override
     public ObservableBooleanValue atMarkedPositionProperty() {
-        return atMarkedPosition;
+        return queue.atMarkedPositionProperty();
     }
 
     @Override
     public UndoPosition getCurrentPosition() {
-        return new UndoPositionImpl(queue.getCurrentPosition());
+        return new NonLinearUndoManagerImpl.UndoPositionImpl(queue.getCurrentPosition());
     }
 
     @Override
@@ -168,17 +134,26 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public void forgetHistory() {
         queue.forgetHistory();
-        undoAvailable.invalidate();
+    }
+
+    private void performUndo(C change) {
+        performChange(invert.apply(change));
+        queue.addRedoableChange(change);
+    }
+
+    private void performRedo(C change) {
+        performChange(change);
+        queue.pushRedo(change);
     }
 
     private void performChange(C change) {
         this.expectedChange = change;
-        performingAction.suspendWhile(() -> apply.accept(change));
+        queue.performingActionProperty().suspendWhile(() -> apply.accept(change));
     }
 
     private void changeObserved(C change) {
         if(expectedChange == null) {
-            addChange(change);
+            addNewChange(change);
         } else if(expectedChange.equals(change)) {
             expectedChange = null;
         } else {
@@ -189,17 +164,14 @@ public class UndoManagerImpl<C> implements UndoManager {
     }
 
     @SuppressWarnings("unchecked")
-    private void addChange(C change) {
-        if(canMerge && queue.hasPrev()) {
+    private void addNewChange(C change) {
+        if(canMerge && queue.hasPrev() && queue.committedLastChange()) {
             C prev = queue.prev();
-            queue.push(merge(prev, change));
+            queue.pushChanges(merge(prev, change));
         } else {
-            queue.push(change);
+            queue.pushChanges(change);
         }
         canMerge = true;
-        undoAvailable.invalidate();
-        redoAvailable.invalidate();
-        atMarkedPosition.invalidate();
     }
 
     @SuppressWarnings("unchecked")
@@ -211,4 +183,5 @@ public class UndoManagerImpl<C> implements UndoManager {
             return (C[]) new Object[] { c1, c2 };
         }
     }
+
 }
