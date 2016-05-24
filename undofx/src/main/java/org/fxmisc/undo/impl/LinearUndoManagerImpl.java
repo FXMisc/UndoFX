@@ -9,7 +9,6 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
 
 import org.fxmisc.undo.UndoManager;
-import org.fxmisc.undo.impl.LinearChangeQueue.QueuePosition;
 import org.reactfx.EventStream;
 import org.reactfx.Subscription;
 import org.reactfx.SuspendableNo;
@@ -17,9 +16,9 @@ import org.reactfx.SuspendableNo;
 public class LinearUndoManagerImpl<C> implements UndoManager {
 
     private class UndoPositionImpl implements UndoPosition {
-        private final QueuePosition queuePos;
+        private final ChangeQueue.QueuePosition queuePos;
 
-        UndoPositionImpl(QueuePosition queuePos) {
+        UndoPositionImpl(ChangeQueue.QueuePosition queuePos) {
             this.queuePos = queuePos;
         }
 
@@ -65,7 +64,7 @@ public class LinearUndoManagerImpl<C> implements UndoManager {
     };
 
     private boolean canMerge;
-    private QueuePosition mark;
+    private ChangeQueue.QueuePosition mark;
     private C expectedChange = null;
 
     public LinearUndoManagerImpl(

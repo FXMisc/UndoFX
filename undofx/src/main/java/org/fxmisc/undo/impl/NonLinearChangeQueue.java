@@ -2,19 +2,7 @@ package org.fxmisc.undo.impl;
 
 import javafx.beans.value.ObservableBooleanValue;
 
-public interface NonLinearChangeQueue<C> {
-
-    interface QueuePosition {
-        boolean isValid();
-    }
-
-    boolean hasNext();
-
-    boolean hasPrev();
-
-    C next();
-
-    C prev();
+public interface NonLinearChangeQueue<C> extends ChangeQueue<C> {
 
     void addRedoableChange(C change);
 
@@ -22,10 +10,6 @@ public interface NonLinearChangeQueue<C> {
     void pushChanges(C... changes);
 
     void pushRedo(C change);
-
-    NonLinearChangeQueue.QueuePosition getCurrentPosition();
-
-    void forgetHistory();
 
     boolean committedLastChange();
 

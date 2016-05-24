@@ -13,9 +13,9 @@ import java.util.function.Function;
 public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> implements UndoManager {
 
     private class UndoPositionImpl implements UndoPosition {
-        private final NonLinearChangeQueue.QueuePosition queuePos;
+        private final ChangeQueue.QueuePosition queuePos;
 
-        UndoPositionImpl(NonLinearChangeQueue.QueuePosition queuePos) {
+        UndoPositionImpl(ChangeQueue.QueuePosition queuePos) {
             this.queuePos = queuePos;
         }
 

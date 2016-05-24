@@ -76,7 +76,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     private final Subscription subscription;
 
     private int forgottenCount = 0;
-    private NonLinearChangeQueue.QueuePosition mark;
+    private ChangeQueue.QueuePosition mark;
 
     public NonLinearUnlimitedChangeQueue(DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph) {
         this.graph = graph;
@@ -128,7 +128,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     }
 
     @Override
-    public NonLinearChangeQueue.QueuePosition getCurrentPosition() {
+    public ChangeQueue.QueuePosition getCurrentPosition() {
         return new NonLinearQueuePositionImpl(graph.getLastChangeFor(this));
     }
 
