@@ -1,15 +1,18 @@
 package org.fxmisc.undo.impl;
 
 import javafx.beans.binding.BooleanBinding;
+import javafx.collections.transformation.SortedList;
 import org.reactfx.Subscription;
 import org.reactfx.SuspendableNo;
 
+import javax.sound.midi.Soundbank;
+
 public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C> {
 
-    private class NonLinearQueuePositionImpl implements NonLinearChangeQueue.QueuePosition {
+    private class QueuePositionImpl implements ChangeQueue.QueuePosition {
         private final NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> change;
 
-        NonLinearQueuePositionImpl(NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> change) {
+        QueuePositionImpl(NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> change) {
             this.change = change;
         }
 
@@ -21,9 +24,9 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
 
         @Override
         public boolean equals(Object obj) {
-            if (obj instanceof NonLinearUnlimitedChangeQueue.NonLinearQueuePositionImpl) {
+            if (obj instanceof NonLinearUnlimitedChangeQueue.QueuePositionImpl) {
                 @SuppressWarnings("unchecked")
-                NonLinearQueuePositionImpl otherPos = (NonLinearQueuePositionImpl) obj;
+                QueuePositionImpl otherPos = (QueuePositionImpl) obj;
                 return getQueue() == otherPos.getQueue() && change == otherPos.change;
             } else {
                 return false;
@@ -77,9 +80,10 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
 
     private ChangeQueue.QueuePosition mark;
 
+    private long redoRevision;
+
     public NonLinearUnlimitedChangeQueue(DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph) {
         this.graph = graph;
-        graph.registerRedoableListFor(this);
 
         this.mark = getCurrentPosition();
         this.subscription = graph.performingActionProperty().values()
@@ -114,7 +118,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     }
 
     public void addRedoableChange(C change) {
-        graph.addRedoableChangeFor(this, change);
+        graph.addRedoFor(this, change);
     }
 
     @SafeVarargs
@@ -128,7 +132,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
 
     @Override
     public ChangeQueue.QueuePosition getCurrentPosition() {
-        return new NonLinearQueuePositionImpl(graph.getLastChangeFor(this));
+        return new QueuePositionImpl(graph.getLastChangeFor(this));
     }
 
     public void mark() {

@@ -1,6 +1,7 @@
 package org.fxmisc.undo.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -14,7 +15,7 @@ public class RedoableChangesList<Source extends NonLinearChangeQueue<C>, C> {
     private final Function<C, BubbledResult<C>> bubbler;
 
     private final List<C> all = new ArrayList<>(1);
-    private List<C> valid = new ArrayList<>(1);
+    private List<C> valid = Collections.emptyList();
 
     private final Source source;
     public final Source getSource() { return source; }
