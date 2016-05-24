@@ -2,7 +2,7 @@ package org.fxmisc.undo.impl;
 
 import java.util.ArrayList;
 
-public class UnlimitedLinearChangeQueue<C> implements ChangeQueue<C> {
+public class UnlimitedLinearChangeQueue<C> implements LinearChangeQueue<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final int allTimePos;

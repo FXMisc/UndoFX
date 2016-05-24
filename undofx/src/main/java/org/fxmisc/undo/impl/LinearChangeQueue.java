@@ -1,6 +1,6 @@
 package org.fxmisc.undo.impl;
 
-public interface ChangeQueue<C> {
+public interface LinearChangeQueue<C> {
 
     interface QueuePosition {
         boolean isValid();

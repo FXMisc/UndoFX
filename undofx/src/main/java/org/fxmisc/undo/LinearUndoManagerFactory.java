@@ -5,7 +5,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.fxmisc.undo.impl.ChangeQueue;
+import org.fxmisc.undo.impl.LinearChangeQueue;
 import org.fxmisc.undo.impl.FixedSizeLinearChangeQueue;
 import org.fxmisc.undo.impl.LinearUndoManagerImpl;
 import org.fxmisc.undo.impl.UnlimitedLinearChangeQueue;
@@ -29,7 +29,7 @@ public interface LinearUndoManagerFactory {
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply) {
-        ChangeQueue<C> queue = new UnlimitedLinearChangeQueue<C>();
+        LinearChangeQueue<C> queue = new UnlimitedLinearChangeQueue<C>();
         BiFunction<C, C, Optional<C>> merge = (c1, c2) -> Optional.empty();
         return new LinearUndoManagerImpl<>(queue, invert, apply, merge, changeStream);
     }
@@ -39,7 +39,7 @@ public interface LinearUndoManagerFactory {
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge) {
-        ChangeQueue<C> queue = new UnlimitedLinearChangeQueue<C>();
+        LinearChangeQueue<C> queue = new UnlimitedLinearChangeQueue<C>();
         return new LinearUndoManagerImpl<>(queue, invert, apply, merge, changeStream);
     }
 
@@ -69,7 +69,7 @@ public interface LinearUndoManagerFactory {
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             int capacity) {
-        ChangeQueue<C> queue = new FixedSizeLinearChangeQueue<C>(capacity);
+        LinearChangeQueue<C> queue = new FixedSizeLinearChangeQueue<C>(capacity);
         BiFunction<C, C, Optional<C>> merge = (c1, c2) -> Optional.empty();
         return new LinearUndoManagerImpl<>(queue, invert, apply, merge, changeStream);
     }
@@ -80,7 +80,7 @@ public interface LinearUndoManagerFactory {
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
             int capacity) {
-        ChangeQueue<C> queue = new FixedSizeLinearChangeQueue<C>(capacity);
+        LinearChangeQueue<C> queue = new FixedSizeLinearChangeQueue<C>(capacity);
         return new LinearUndoManagerImpl<>(queue, invert, apply, merge, changeStream);
     }
 
@@ -106,7 +106,7 @@ public interface LinearUndoManagerFactory {
     }
 
     public static <C> UndoManager zeroHistoryUndoManager(EventStream<C> changeStream) {
-        ChangeQueue<C> queue = new ZeroSizeLinearChangeQueue<>();
+        LinearChangeQueue<C> queue = new ZeroSizeLinearChangeQueue<>();
         return new LinearUndoManagerImpl<>(queue, c -> c, c -> {}, (c1, c2) -> Optional.empty(), changeStream);
     }
 

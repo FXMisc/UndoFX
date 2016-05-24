@@ -2,14 +2,14 @@ package org.fxmisc.undo.impl;
 
 import static org.junit.Assert.*;
 
-import org.fxmisc.undo.impl.ChangeQueue.QueuePosition;
+import org.fxmisc.undo.impl.LinearChangeQueue.QueuePosition;
 import org.junit.Test;
 
 public class UnlimitedLinearChangeQueueTest {
 
     @Test
     public void testPositionValidityOnUndo() {
-        ChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
+        LinearChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
         QueuePosition pos0 = queue.getCurrentPosition();
         queue.push(1);
         QueuePosition pos1 = queue.getCurrentPosition();
@@ -64,7 +64,7 @@ public class UnlimitedLinearChangeQueueTest {
 
     @Test
     public void testPositionValidityOnForgetHistory() {
-        ChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
+        LinearChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
         QueuePosition pos0 = queue.getCurrentPosition();
         queue.push(1);
         QueuePosition pos1 = queue.getCurrentPosition();
@@ -88,7 +88,7 @@ public class UnlimitedLinearChangeQueueTest {
 
     @Test
     public void testPositionEquality() {
-        ChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
+        LinearChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
         queue.push(1);
         QueuePosition pos = queue.getCurrentPosition();
         assertEquals(pos, queue.getCurrentPosition());
