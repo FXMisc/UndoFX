@@ -14,17 +14,17 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>, C> implements DirectedAcyclicUndoGraph<Source, C> {
+public final class DirectAcyclicGraphImpl<C> implements DirectedAcyclicUndoGraph<C> {
 
-    private final List<NonLinearChange<Source, C>> EMPTY_LIST = new ArrayList<>(0);
+    private final List<NonLinearChange<C>> EMPTY_LIST = new ArrayList<>(0);
 
-    private final List<NonLinearChange<Source, C>> redosAll = new ArrayList<>(1);
-    private List<NonLinearChange<Source, C>> redosValid = new ArrayList<>(1);
+    private final List<NonLinearChange<C>> redosAll = new ArrayList<>(1);
+    private List<NonLinearChange<C>> redosValid = new ArrayList<>(1);
 
-    private final List<NonLinearChange<Source, C>> undosAll = new ArrayList<>(1);
-    private List<NonLinearChange<Source, C>> undosValid = new ArrayList<>(1);
+    private final List<NonLinearChange<C>> undosAll = new ArrayList<>(1);
+    private List<NonLinearChange<C>> undosValid = new ArrayList<>(1);
 
-    private final HashMap<NonLinearChange<Source, C>, List<NonLinearChange<Source, C>>> toFromEdges = new HashMap<>();
+    private final HashMap<NonLinearChange<C>, List<NonLinearChange<C>>> toFromEdges = new HashMap<>();
 
     private final SuspendableNo performingAction = new SuspendableNo();
     public final SuspendableNo performingActionProperty() {
@@ -68,7 +68,7 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         this.postBubbleRedoUpdater = postBubbleRedoUpdater;
     }
 
-    public final boolean hasNextFor(Source source) {
+    public final boolean hasNextFor(NonLinearChangeQueue<C> source) {
         boolean hasNext = false;
         for (int i = redosValid.size() - 1; i >= 0; i--) {
             if (redosValid.get(i).getSource() == source) {
@@ -79,7 +79,7 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         return hasNext;
     }
 
-    public final boolean hasPrevFor(Source source) {
+    public final boolean hasPrevFor(NonLinearChangeQueue<C> source) {
         boolean hasPrev = false;
         for (int i = undosValid.size() - 1; i >= 0; i--) {
             if (undosValid.get(i).getSource() == source) {
@@ -90,10 +90,10 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         return hasPrev;
     };
 
-    public final C nextFor(Source source) {
-        NonLinearChange<Source, C> validRedo = null;
+    public final C nextFor(NonLinearChangeQueue<C> source) {
+        NonLinearChange<C> validRedo = null;
         for (int i = redosValid.size() - 1; i >= 0; i--) {
-            NonLinearChange<Source, C> possibleChange = redosValid.get(i);
+            NonLinearChange<C> possibleChange = redosValid.get(i);
             if (possibleChange.getSource() == source) {
                 validRedo = possibleChange;
                 break;
@@ -107,10 +107,10 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         }
     }
 
-    public final C prevFor(Source source) {
-        NonLinearChange<Source, C> validUndo = null;
+    public final C prevFor(NonLinearChangeQueue<C> source) {
+        NonLinearChange<C> validUndo = null;
         for (int i = undosValid.size() - 1; i >= 0; i--) {
-            NonLinearChange<Source, C> change = undosValid.get(i);
+            NonLinearChange<C> change = undosValid.get(i);
             if (change.getSource() == source) {
                 validUndo = change;
                 break;
@@ -126,7 +126,7 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
 
     private long expectedRedoRevision;
 
-    private C getValidFormOfRedo(NonLinearChange<Source, C> validRedo) {
+    private C getValidFormOfRedo(NonLinearChange<C> validRedo) {
         C originalChange = validRedo.getChange();
         BubbledResult<C> bubbledResult = redoBubbler.apply(originalChange);
         C bubbledChange = bubbledResult.getBubbled();
@@ -137,7 +137,7 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
             return originalChange;
         } else {
             int index = redosAll.indexOf(validRedo);
-            NonLinearChange<Source, C> updated = validRedo.updateChange(bubbledResult.getBuried());
+            NonLinearChange<C> updated = validRedo.updateChange(bubbledResult.getBuried());
 
             updateRedosPostBubble(updated, originalChange, bubbledResult);
 
@@ -147,14 +147,14 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         }
     }
 
-    private void updateRedosPostBubble(NonLinearChange<Source, C> preBubbledChange, C original, BubbledResult<C> bubbleResult) {
+    private void updateRedosPostBubble(NonLinearChange<C> preBubbledChange, C original, BubbledResult<C> bubbleResult) {
         for (int i = 0; i < redosAll.size() - 1; i++ ) {
-            NonLinearChange<Source, C> outdatedChange = redosAll.get(i);
+            NonLinearChange<C> outdatedChange = redosAll.get(i);
             if (!preBubbledChange.equals(outdatedChange)) {
                 C outdated = outdatedChange.getChange();
                 C updated = postBubbleRedoUpdater.apply(outdated, original, bubbleResult);
                 if (!outdated.equals(updated)) {
-                    NonLinearChange<Source, C> updatedChange = outdatedChange.updateChange(updated);
+                    NonLinearChange<C> updatedChange = outdatedChange.updateChange(updated);
                     redosAll.set(i, updatedChange);
                 }
             }
@@ -163,8 +163,8 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
 
     private long expectedUndoRevision;
 
-    private C getValidFormOfUndo(NonLinearChange<Source, C> undoableChange) {
-        List<NonLinearChange<Source, C>> dependencies = getDependencies(undoableChange);
+    private C getValidFormOfUndo(NonLinearChange<C> undoableChange) {
+        List<NonLinearChange<C>> dependencies = getDependencies(undoableChange);
         boolean isMutuallyIndependent = dependencies.isEmpty();
         if (isMutuallyIndependent) {
             removeRelatedEdgesOf(undoableChange);
@@ -179,7 +179,7 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
 
             updateUndosPostBubble(undoableChange, original, bubbleResult);
 
-            NonLinearChange<Source, C> buriedChange = undoableChange.updateChange(bubbleResult.getBuried());
+            NonLinearChange<C> buriedChange = undoableChange.updateChange(bubbleResult.getBuried());
             int index = undosAll.indexOf(undoableChange);
             undosAll.set(index, buriedChange);
             remapAllEdges(undoableChange, buriedChange);
@@ -190,14 +190,14 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         }
     }
 
-    private void updateUndosPostBubble(NonLinearChange<Source, C> change, C original, BubbledResult<C> bubbleResult) {
+    private void updateUndosPostBubble(NonLinearChange<C> change, C original, BubbledResult<C> bubbleResult) {
         for (int i = 0; i < undosAll.size(); i++) {
-            NonLinearChange<Source, C> outdatedChange = undosAll.get(i);
+            NonLinearChange<C> outdatedChange = undosAll.get(i);
             if (!change.equals(outdatedChange)) {
                 C outdated = outdatedChange.getChange();
                 C updated = postBubbleUndoUpdater.apply(outdated, original, bubbleResult);
                 if (!outdated.equals(updated)) {
-                    NonLinearChange<Source, C> updatedChange = outdatedChange.updateChange(updated);
+                    NonLinearChange<C> updatedChange = outdatedChange.updateChange(updated);
                     undosAll.set(i, updatedChange);
                     remapAllEdges(outdatedChange, updatedChange);
                 }
@@ -205,7 +205,7 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         }
     }
 
-    public void closeDown(Source source) {
+    public void closeDown(NonLinearChangeQueue<C> source) {
         redosAll.stream()
                 .filter(changesDoneBy(source))
                 .forEach(redosAll::remove);
@@ -218,8 +218,8 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         });
     }
 
-    public void forgetHistoryFor(Source source, Consumer<Void> ifForgotten) {
-        List<NonLinearChange<Source, C>> history = undosAll.stream()
+    public void forgetHistoryFor(NonLinearChangeQueue<C> source, Consumer<Void> ifForgotten) {
+        List<NonLinearChange<C>> history = undosAll.stream()
                 .filter(changesDoneBy(source))
                 .collect(Collectors.toCollection(ArrayList::new));
 
@@ -234,7 +234,7 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
 
 
     @SafeVarargs
-    public final void pushChanges(Source source, C... newChanges) {
+    public final void pushChanges(NonLinearChangeQueue<C> source, C... newChanges) {
         redosValid.stream()
                 .filter(changesDoneBy(source))
                 .forEach(redosValid::remove);
@@ -242,18 +242,18 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         push(source, () -> revision++, newChanges);
     }
 
-    public final void pushRedo(Source source, C redoChange) {
+    public final void pushRedo(NonLinearChangeQueue<C> source, C redoChange) {
         push(source, () -> expectedRedoRevision, redoChange);
     }
 
-    public void addRedoFor(Source source, C change) {
-        NonLinearChange<Source, C> redo = new NonLinearChange<>(source, change, expectedUndoRevision);
+    public void addRedoFor(NonLinearChangeQueue<C> source, C change) {
+        NonLinearChange<C> redo = new NonLinearChange<>(source, change, expectedUndoRevision);
         redosAll.add(redo);
         redosValid.add(redo);
     }
 
     @SafeVarargs
-    private final void push(Source source, Supplier<Long> revisionSupplier, C... newChanges) {
+    private final void push(NonLinearChangeQueue<C> source, Supplier<Long> revisionSupplier, C... newChanges) {
         Stream.of(newChanges).forEach(c -> {
             updateRedoableChanges(c);
             updateUndoableChanges(source, c, revisionSupplier);
@@ -263,7 +263,7 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
 
     private void updateRedoableChanges(C change) {
         for (int i = 0; i < redosAll.size(); i++) {
-            NonLinearChange<Source, C> outdatedChange = redosAll.get(i);
+            NonLinearChange<C> outdatedChange = redosAll.get(i);
             C outdated = outdatedChange.getChange();
             C updated = redoUpdater.apply(change, outdated);
             if (!outdated.equals(updated)) {
@@ -272,16 +272,16 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         }
     }
 
-    private void updateUndoableChanges(Source source, C change, Supplier<Long> revisionSupplier) {
-        NonLinearChange<Source, C> addedChange = new NonLinearChange<>(source, change, revisionSupplier.get());
+    private void updateUndoableChanges(NonLinearChangeQueue<C> source, C change, Supplier<Long> revisionSupplier) {
+        NonLinearChange<C> addedChange = new NonLinearChange<>(source, change, revisionSupplier.get());
 
         if (!undosAll.isEmpty()) {
             for (int i = 0; i < undosAll.size(); i++) {
-                NonLinearChange<Source, C> outdatedChange = undosAll.get(i);
+                NonLinearChange<C> outdatedChange = undosAll.get(i);
                 C outdated = outdatedChange.getChange();
                 C updated = undoUpdater.apply(change, outdated);
 
-                NonLinearChange<Source, C> updatedChange;
+                NonLinearChange<C> updatedChange;
                 if (!outdated.equals(updated)) {
                     updatedChange = outdatedChange.updateChange(updated);
                     undosAll.set(i, updatedChange);
@@ -304,8 +304,8 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         undosAll.add(addedChange);
     }
 
-    private void removeRelatedEdgesOf(NonLinearChange<Source, C> target) {
-        for (NonLinearChange<Source, C> key : toFromEdges.keySet()) {
+    private void removeRelatedEdgesOf(NonLinearChange<C> target) {
+        for (NonLinearChange<C> key : toFromEdges.keySet()) {
             if (key.equals(target)) {
                 toFromEdges.remove(key);
             } else {
@@ -314,11 +314,11 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         }
     }
 
-    private void addEdgeFromTo(NonLinearChange<Source, C> from, NonLinearChange<Source, C> to) {
+    private void addEdgeFromTo(NonLinearChange<C> from, NonLinearChange<C> to) {
         if (toFromEdges.containsKey(to)) {
             toFromEdges.get(to).add(from);
         } else {
-            ArrayList<NonLinearChange<Source, C>> list = new ArrayList<>(1);
+            ArrayList<NonLinearChange<C>> list = new ArrayList<>(1);
             list.add(from);
             toFromEdges.put(to, list);
         }
@@ -333,13 +333,13 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public final boolean isQueuePositionValid(Source source, NonLinearChange<Source, C> savedChange)  {
+    public final boolean isQueuePositionValid(NonLinearChangeQueue<C> source, NonLinearChange<C> savedChange)  {
         if (savedChange == null) {
             return undosAll.stream().noneMatch(changesDoneBy(source));
         }
 
         long revision = savedChange.getRevision();
-        Predicate<NonLinearChange<Source, C>> sharesSameRevision = c -> c.getRevision() == revision;
+        Predicate<NonLinearChange<C>> sharesSameRevision = c -> c.getRevision() == revision;
         return undosAll.stream()
                 .filter(changesDoneBy(source))
                 .anyMatch(sharesSameRevision)
@@ -348,9 +348,9 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
                 .anyMatch(sharesSameRevision);
     }
 
-    public final NonLinearChange<Source, C> getLastChangeFor(Source source) {
+    public final NonLinearChange<C> getLastChangeFor(NonLinearChangeQueue<C> source) {
         for (int i = undosAll.size() - 1; i >= 0; i--) {
-            NonLinearChange<Source, C> change = undosAll.get(i);
+            NonLinearChange<C> change = undosAll.get(i);
             if (change.getSource() == source) {
                 return change;
             }
@@ -358,24 +358,24 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         return null;
     }
 
-    private Predicate<NonLinearChange<Source, C>> changesDoneBy(Source source) {
+    private Predicate<NonLinearChange<C>> changesDoneBy(NonLinearChangeQueue<C> source) {
         return c -> c.getSource() == source;
     }
 
-    private List<NonLinearChange<Source, C>> getDependencies(NonLinearChange<Source, C> target) {
+    private List<NonLinearChange<C>> getDependencies(NonLinearChange<C> target) {
         return toFromEdges.containsKey(target)
                 ? toFromEdges.get(target)
                 : EMPTY_LIST;
     }
 
-    private void remapAllEdges(NonLinearChange<Source, C> outdatedChange, NonLinearChange<Source, C> updatedChange) {
+    private void remapAllEdges(NonLinearChange<C> outdatedChange, NonLinearChange<C> updatedChange) {
         if (!toFromEdges.isEmpty()) {
-            for (NonLinearChange<Source, C> key : toFromEdges.keySet()) {
+            for (NonLinearChange<C> key : toFromEdges.keySet()) {
                 if (key.equals(outdatedChange)) {
-                    List<NonLinearChange<Source, C>> list = toFromEdges.remove(outdatedChange);
+                    List<NonLinearChange<C>> list = toFromEdges.remove(outdatedChange);
                     toFromEdges.put(updatedChange, list);
                 } else {
-                    List<NonLinearChange<Source, C>> list = toFromEdges.get(outdatedChange);
+                    List<NonLinearChange<C>> list = toFromEdges.get(outdatedChange);
                     int index = list.indexOf(outdatedChange);
                     if (index >= 0) {
                         list.set(index, updatedChange);
@@ -385,13 +385,13 @@ public final class DirectAcyclicGraphImpl<Source extends NonLinearChangeQueue<C>
         }
     }
 
-    private List<C> extractChangesFrom(List<NonLinearChange<Source, C>> list) {
+    private List<C> extractChangesFrom(List<NonLinearChange<C>> list) {
         List<C> extractedChanges = new ArrayList<>(list.size());
         list.forEach(c -> extractedChanges.add(c.getChange()));
         return extractedChanges;
     }
 
-    public final boolean wasLastChangePerformedBy(Source source) {
+    public final boolean wasLastChangePerformedBy(NonLinearChangeQueue<C> source) {
         return undosAll.get(undosAll.size() - 1).getSource() == source;
     }
 

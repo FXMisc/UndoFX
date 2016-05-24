@@ -1,7 +1,7 @@
 package org.fxmisc.undo.impl;
 
 import javafx.beans.binding.BooleanBinding;
-import javafx.collections.transformation.SortedList;
+import javafx.beans.value.ObservableBooleanValue;
 import org.reactfx.Subscription;
 import org.reactfx.SuspendableNo;
 
@@ -10,9 +10,9 @@ import javax.sound.midi.Soundbank;
 public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C> {
 
     private class QueuePositionImpl implements ChangeQueue.QueuePosition {
-        private final NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> change;
+        private final NonLinearChange<C> change;
 
-        QueuePositionImpl(NonLinearChange<NonLinearUnlimitedChangeQueue<C>, C> change) {
+        QueuePositionImpl(NonLinearChange<C> change) {
             this.change = change;
         }
 
@@ -44,7 +44,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
             return hasPrev();
         }
     };
-    public final BooleanBinding undoAvailableProperty() { return undoAvailable; }
+    public final ObservableBooleanValue undoAvailableProperty() { return undoAvailable; }
     public boolean isUndoAvailable() {
         return undoAvailable.get();
     }
@@ -55,7 +55,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
             return hasNext();
         }
     };
-    public final BooleanBinding redoAvailableProperty() { return redoAvailable; }
+    public final ObservableBooleanValue redoAvailableProperty() { return redoAvailable; }
     public boolean isRedoAvailable() {
         return redoAvailable.get();
     }
@@ -66,7 +66,7 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
             return mark.equals(getCurrentPosition());
         }
     };
-    public final BooleanBinding atMarkedPositionProperty() { return atMarkedPosition; }
+    public final ObservableBooleanValue atMarkedPositionProperty() { return atMarkedPosition; }
     public boolean isAtMarkedPosition() {
         return atMarkedPosition.get();
     }
@@ -74,15 +74,13 @@ public class NonLinearUnlimitedChangeQueue<C> implements NonLinearChangeQueue<C>
     public SuspendableNo performingActionProperty() { return graph.performingActionProperty(); }
     public boolean isPerformingAction() { return graph.isPerformingAction(); }
 
-    private final DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph;
+    private final DirectAcyclicGraphImpl<C> graph;
 
     private final Subscription subscription;
 
     private ChangeQueue.QueuePosition mark;
 
-    private long redoRevision;
-
-    public NonLinearUnlimitedChangeQueue(DirectAcyclicGraphImpl<NonLinearUnlimitedChangeQueue<C>, C> graph) {
+    public NonLinearUnlimitedChangeQueue(DirectAcyclicGraphImpl<C> graph) {
         this.graph = graph;
 
         this.mark = getCurrentPosition();

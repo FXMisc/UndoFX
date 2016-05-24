@@ -2,18 +2,18 @@ package org.fxmisc.undo.impl;
 
 import java.util.Objects;
 
-public class NonLinearChange<S extends NonLinearChangeQueue<C>, C> extends RevisionedChange<C> {
+public class NonLinearChange<C> extends RevisionedChange<C> {
 
-    private final S source;
+    private final NonLinearChangeQueue<C> source;
 
-    public NonLinearChange(S source, C change, long rev) {
+    public NonLinearChange(NonLinearChangeQueue<C> source, C change, long rev) {
         super(change, rev);
         this.source = source;
     }
 
-    public final S getSource() { return source; }
+    public final NonLinearChangeQueue<C> getSource() { return source; }
 
-    public NonLinearChange<S, C> updateChange(C change) {
+    public NonLinearChange<C> updateChange(C change) {
         return new NonLinearChange<>(source, change, getRevision());
     }
 

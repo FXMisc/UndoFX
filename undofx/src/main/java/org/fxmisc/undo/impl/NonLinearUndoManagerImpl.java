@@ -10,7 +10,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> implements UndoManager {
+public class NonLinearUndoManagerImpl<C> implements UndoManager {
 
     private class UndoPositionImpl implements UndoPosition {
         private final ChangeQueue.QueuePosition queuePos;
@@ -36,12 +36,12 @@ public class NonLinearUndoManagerImpl<S extends NonLinearChangeQueue<C>, C> impl
     private final BiFunction<C, C, Optional<C>> merge;
     private final Subscription subscription;
 
-    private NonLinearUnlimitedChangeQueue<C> queue;
+    private NonLinearChangeQueue<C> queue;
     private boolean canMerge;
     private C expectedChange = null;
 
     public NonLinearUndoManagerImpl(
-            NonLinearUnlimitedChangeQueue<C> queue,
+            NonLinearChangeQueue<C> queue,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,

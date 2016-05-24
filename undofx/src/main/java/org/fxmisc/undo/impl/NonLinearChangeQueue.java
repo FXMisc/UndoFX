@@ -1,20 +1,34 @@
 package org.fxmisc.undo.impl;
 
 import javafx.beans.value.ObservableBooleanValue;
+import org.reactfx.SuspendableNo;
 
 public interface NonLinearChangeQueue<C> extends ChangeQueue<C> {
 
-    void addRedoableChange(C change);
+    public void addRedoableChange(C change);
 
     @SuppressWarnings({"unchecked"})
-    void pushChanges(C... changes);
+    public void pushChanges(C... changes);
 
-    void pushRedo(C change);
+    public void pushRedo(C change);
 
-    boolean committedLastChange();
+    public boolean committedLastChange();
 
-    boolean isPerformingAction();
+    public ObservableBooleanValue undoAvailableProperty();
+    public boolean isUndoAvailable();
 
-    ObservableBooleanValue performingActionProperty();
+    public ObservableBooleanValue redoAvailableProperty();
+    public boolean isRedoAvailable();
+
+    public ObservableBooleanValue atMarkedPositionProperty();
+    public boolean isAtMarkedPosition();
+
+    public void mark();
+
+    public boolean isPerformingAction();
+
+    public SuspendableNo performingActionProperty();
+
+    public void close();
 
 }
