@@ -2,7 +2,6 @@ package org.fxmisc.undo.impl;
 
 import static org.junit.Assert.*;
 
-import org.fxmisc.undo.impl.LinearChangeQueue.QueuePosition;
 import org.junit.Test;
 
 public class FixedSizeLinearChangeQueueTest {
@@ -31,7 +30,7 @@ public class FixedSizeLinearChangeQueueTest {
         LinearChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(1);
 
         // check that the initial position is valid
-        QueuePosition pos0 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos0 = queue.getCurrentPosition();
         assertTrue(pos0.isValid());
 
         // push first element
@@ -40,7 +39,7 @@ public class FixedSizeLinearChangeQueueTest {
         // check that the initial position is still valid
         // and that the current position is valid as well
         assertTrue(pos0.isValid());
-        QueuePosition pos1 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos1 = queue.getCurrentPosition();
         assertTrue(pos1.isValid());
 
         // push one more element
@@ -51,7 +50,7 @@ public class FixedSizeLinearChangeQueueTest {
         // the current position is valid as well
         assertFalse(pos0.isValid());
         assertTrue(pos1.isValid());
-        QueuePosition pos2 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos2 = queue.getCurrentPosition();
         assertTrue(pos2.isValid());
 
         // push two elements at once
@@ -66,15 +65,15 @@ public class FixedSizeLinearChangeQueueTest {
     @Test
     public void testPositionValidityOnUndo() {
         LinearChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(4);
-        QueuePosition pos0 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos0 = queue.getCurrentPosition();
         queue.push(1);
-        QueuePosition pos1 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos1 = queue.getCurrentPosition();
         queue.push(2);
-        QueuePosition pos2 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos2 = queue.getCurrentPosition();
         queue.push(3);
-        QueuePosition pos3 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos3 = queue.getCurrentPosition();
         queue.push(4);
-        QueuePosition pos4 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos4 = queue.getCurrentPosition();
 
         assertTrue(pos0.isValid());
         assertTrue(pos1.isValid());
@@ -121,15 +120,15 @@ public class FixedSizeLinearChangeQueueTest {
     @Test
     public void testPositionValidityOnForgetHistory() {
         LinearChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(4);
-        QueuePosition pos0 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos0 = queue.getCurrentPosition();
         queue.push(1);
-        QueuePosition pos1 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos1 = queue.getCurrentPosition();
         queue.push(2);
-        QueuePosition pos2 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos2 = queue.getCurrentPosition();
         queue.push(3);
-        QueuePosition pos3 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos3 = queue.getCurrentPosition();
         queue.push(4);
-        QueuePosition pos4 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos4 = queue.getCurrentPosition();
 
         queue.prev();
         queue.prev();
@@ -146,7 +145,7 @@ public class FixedSizeLinearChangeQueueTest {
     public void testPositionEquality() {
         LinearChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(2);
         queue.push(1);
-        QueuePosition pos = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos = queue.getCurrentPosition();
         assertEquals(pos, queue.getCurrentPosition());
         queue.push(2);
         assertNotEquals(pos, queue.getCurrentPosition());

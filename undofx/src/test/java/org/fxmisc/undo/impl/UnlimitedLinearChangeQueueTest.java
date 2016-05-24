@@ -2,7 +2,6 @@ package org.fxmisc.undo.impl;
 
 import static org.junit.Assert.*;
 
-import org.fxmisc.undo.impl.LinearChangeQueue.QueuePosition;
 import org.junit.Test;
 
 public class UnlimitedLinearChangeQueueTest {
@@ -10,15 +9,15 @@ public class UnlimitedLinearChangeQueueTest {
     @Test
     public void testPositionValidityOnUndo() {
         LinearChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
-        QueuePosition pos0 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos0 = queue.getCurrentPosition();
         queue.push(1);
-        QueuePosition pos1 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos1 = queue.getCurrentPosition();
         queue.push(2);
-        QueuePosition pos2 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos2 = queue.getCurrentPosition();
         queue.push(3);
-        QueuePosition pos3 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos3 = queue.getCurrentPosition();
         queue.push(4);
-        QueuePosition pos4 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos4 = queue.getCurrentPosition();
 
         assertTrue(pos0.isValid());
         assertTrue(pos1.isValid());
@@ -65,15 +64,15 @@ public class UnlimitedLinearChangeQueueTest {
     @Test
     public void testPositionValidityOnForgetHistory() {
         LinearChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
-        QueuePosition pos0 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos0 = queue.getCurrentPosition();
         queue.push(1);
-        QueuePosition pos1 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos1 = queue.getCurrentPosition();
         queue.push(2);
-        QueuePosition pos2 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos2 = queue.getCurrentPosition();
         queue.push(3);
-        QueuePosition pos3 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos3 = queue.getCurrentPosition();
         queue.push(4);
-        QueuePosition pos4 = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos4 = queue.getCurrentPosition();
 
         queue.prev();
         queue.prev();
@@ -90,7 +89,7 @@ public class UnlimitedLinearChangeQueueTest {
     public void testPositionEquality() {
         LinearChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
         queue.push(1);
-        QueuePosition pos = queue.getCurrentPosition();
+        ChangeQueue.QueuePosition pos = queue.getCurrentPosition();
         assertEquals(pos, queue.getCurrentPosition());
         queue.push(2);
         assertNotEquals(pos, queue.getCurrentPosition());
