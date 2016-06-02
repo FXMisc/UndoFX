@@ -6,10 +6,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.fxmisc.undo.impl.ChangeQueue;
-import org.fxmisc.undo.impl.FixedSizeChangeQueue;
+import org.fxmisc.undo.impl.FixedSizeLinearChangeQueue;
 import org.fxmisc.undo.impl.UndoManagerImpl;
-import org.fxmisc.undo.impl.UnlimitedChangeQueue;
-import org.fxmisc.undo.impl.ZeroSizeChangeQueue;
+import org.fxmisc.undo.impl.UnlimitedLinearChangeQueue;
+import org.fxmisc.undo.impl.ZeroSizeLinearChangeQueue;
 import org.reactfx.EventStream;
 
 public interface UndoManagerFactory {
@@ -29,7 +29,7 @@ public interface UndoManagerFactory {
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply) {
-        ChangeQueue<C> queue = new UnlimitedChangeQueue<C>();
+        ChangeQueue<C> queue = new UnlimitedLinearChangeQueue<C>();
         BiFunction<C, C, Optional<C>> merge = (c1, c2) -> Optional.empty();
         return new UndoManagerImpl<>(queue, invert, apply, merge, changeStream);
     }
@@ -39,7 +39,7 @@ public interface UndoManagerFactory {
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge) {
-        ChangeQueue<C> queue = new UnlimitedChangeQueue<C>();
+        ChangeQueue<C> queue = new UnlimitedLinearChangeQueue<C>();
         return new UndoManagerImpl<>(queue, invert, apply, merge, changeStream);
     }
 
@@ -69,7 +69,7 @@ public interface UndoManagerFactory {
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             int capacity) {
-        ChangeQueue<C> queue = new FixedSizeChangeQueue<C>(capacity);
+        ChangeQueue<C> queue = new FixedSizeLinearChangeQueue<C>(capacity);
         BiFunction<C, C, Optional<C>> merge = (c1, c2) -> Optional.empty();
         return new UndoManagerImpl<>(queue, invert, apply, merge, changeStream);
     }
@@ -80,7 +80,7 @@ public interface UndoManagerFactory {
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
             int capacity) {
-        ChangeQueue<C> queue = new FixedSizeChangeQueue<C>(capacity);
+        ChangeQueue<C> queue = new FixedSizeLinearChangeQueue<C>(capacity);
         return new UndoManagerImpl<>(queue, invert, apply, merge, changeStream);
     }
 
@@ -106,7 +106,7 @@ public interface UndoManagerFactory {
     }
 
     public static <C> UndoManager zeroHistoryUndoManager(EventStream<C> changeStream) {
-        ChangeQueue<C> queue = new ZeroSizeChangeQueue<>();
+        ChangeQueue<C> queue = new ZeroSizeLinearChangeQueue<>();
         return new UndoManagerImpl<>(queue, c -> c, c -> {}, (c1, c2) -> Optional.empty(), changeStream);
     }
 
