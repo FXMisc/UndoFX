@@ -2,7 +2,7 @@ package org.fxmisc.undo.impl;
 
 import java.util.NoSuchElementException;
 
-public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
+public class FixedSizeLinearChangeQueue<C> implements ChangeQueue<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final int arrayPos;
@@ -27,7 +27,7 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
 
         @Override
         public boolean equals(Object other) {
-            if(other instanceof FixedSizeChangeQueue.QueuePositionImpl) {
+            if(other instanceof FixedSizeLinearChangeQueue.QueuePositionImpl) {
                 @SuppressWarnings("unchecked")
                 QueuePositionImpl otherPos = (QueuePositionImpl) other;
                 return getQueue() == otherPos.getQueue() && rev == otherPos.rev;
@@ -36,8 +36,8 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
             }
         }
 
-        private FixedSizeChangeQueue<C> getQueue() {
-            return FixedSizeChangeQueue.this;
+        private FixedSizeLinearChangeQueue<C> getQueue() {
+            return FixedSizeLinearChangeQueue.this;
         }
     }
 
@@ -54,7 +54,7 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
     private long zeroPositionRevision = revision;
 
     @SuppressWarnings("unchecked")
-    public FixedSizeChangeQueue(int capacity) {
+    public FixedSizeLinearChangeQueue(int capacity) {
         if(capacity <= 0) {
             throw new IllegalArgumentException("capacity must be positive");
         }

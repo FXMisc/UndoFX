@@ -2,7 +2,7 @@ package org.fxmisc.undo.impl;
 
 import java.util.ArrayList;
 
-public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
+public class UnlimitedLinearChangeQueue<C> implements ChangeQueue<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final int allTimePos;
@@ -25,7 +25,7 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
 
         @Override
         public boolean equals(Object other) {
-            if(other instanceof UnlimitedChangeQueue.QueuePositionImpl) {
+            if(other instanceof UnlimitedLinearChangeQueue.QueuePositionImpl) {
                 @SuppressWarnings("unchecked")
                 QueuePositionImpl otherPos = (QueuePositionImpl) other;
                 return getQueue() == otherPos.getQueue() && rev == otherPos.rev;
@@ -34,8 +34,8 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
             }
         }
 
-        private UnlimitedChangeQueue<C> getQueue() {
-            return UnlimitedChangeQueue.this;
+        private UnlimitedLinearChangeQueue<C> getQueue() {
+            return UnlimitedLinearChangeQueue.this;
         }
     }
 
