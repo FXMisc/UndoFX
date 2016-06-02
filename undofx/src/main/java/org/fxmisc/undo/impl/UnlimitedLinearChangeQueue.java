@@ -2,7 +2,7 @@ package org.fxmisc.undo.impl;
 
 import java.util.ArrayList;
 
-public class UnlimitedLinearChangeQueue<C> implements ChangeQueue<C> {
+public class UnlimitedLinearChangeQueue<C> extends ChangeQueueBase<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final int allTimePos;
@@ -46,6 +46,10 @@ public class UnlimitedLinearChangeQueue<C> implements ChangeQueue<C> {
     private long zeroPositionRevision = revision;
     private int forgottenCount = 0;
 
+    public UnlimitedLinearChangeQueue() {
+        this.mark = getCurrentPosition();
+    }
+
     @Override
     public final boolean hasNext() {
         return currentPosition < changes.size();
@@ -58,12 +62,16 @@ public class UnlimitedLinearChangeQueue<C> implements ChangeQueue<C> {
 
     @Override
     public final C next() {
-        return changes.get(currentPosition++).getChange();
+        int index = currentPosition++;
+        invalidateBindings();
+        return changes.get(index).getChange();
     }
 
     @Override
     public final C prev() {
-        return changes.get(--currentPosition).getChange();
+        int index = --currentPosition;
+        invalidateBindings();
+        return changes.get(index).getChange();
     }
 
     @Override
@@ -77,6 +85,7 @@ public class UnlimitedLinearChangeQueue<C> implements ChangeQueue<C> {
             changes.subList(newSize, changes.size()).clear();
             forgottenCount += currentPosition;
             currentPosition = 0;
+            undoAvailable.invalidate();
         }
     }
 
@@ -89,6 +98,7 @@ public class UnlimitedLinearChangeQueue<C> implements ChangeQueue<C> {
             this.changes.add(revC);
         }
         currentPosition += changes.length;
+        invalidateBindings();
     }
 
     @Override
