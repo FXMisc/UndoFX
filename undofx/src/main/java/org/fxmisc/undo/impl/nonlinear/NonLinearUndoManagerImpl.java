@@ -32,7 +32,7 @@ public class NonLinearUndoManagerImpl<C> implements UndoManager {
         }
     }
 
-    private final UnlimitedNonLinearChangeQueue<C> queue;
+    private final NonLinearChangeQueue<C> queue;
     private final Function<? super C, ? extends C> invert;
     private final Consumer<C> apply;
     private final BiFunction<C, C, Optional<C>> merge;
@@ -42,7 +42,7 @@ public class NonLinearUndoManagerImpl<C> implements UndoManager {
     private C expectedChange = null;
 
     public NonLinearUndoManagerImpl(
-            UnlimitedNonLinearChangeQueue<C> queue,
+            NonLinearChangeQueue<C> queue,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,

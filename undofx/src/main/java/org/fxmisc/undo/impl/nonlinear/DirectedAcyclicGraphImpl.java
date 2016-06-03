@@ -12,13 +12,13 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class DirectedAcyclicGraphImpl<C> {
+public class DirectedAcyclicGraphImpl<C> implements DirectedAcyclicGraph<C> {
 
     private final SuspendableNo performingAction = new SuspendableNo();
     public final SuspendableNo performingActionProperty() { return performingAction; }
     public final boolean isPerformingAction() { return performingAction.get(); }
 
-    private final List<UnlimitedNonLinearChangeQueue<C>> queues = new ArrayList<>(1);
+    private final List<NonLinearChangeQueue<C>> queues = new ArrayList<>(1);
     private final HashMap<C, List<C>> toFromEdges = new HashMap<>();
     private final Subscription subscription;
 
@@ -100,23 +100,23 @@ public class DirectedAcyclicGraphImpl<C> {
         }
     }
 
-    public final void registerQueue(UnlimitedNonLinearChangeQueue<C> queue) {
+    public final void registerQueue(NonLinearChangeQueue<C> queue) {
         if (!queue.getChanges().isEmpty()) {
             throw new IllegalArgumentException("A ChangeQueue cannot be registered if it already has 1 or more changes.");
         }
         queues.add(queue);
     }
 
-    public final void unregisterQueue(UnlimitedNonLinearChangeQueue<C> queue) {
+    public final void unregisterQueue(NonLinearChangeQueue<C> queue) {
         forget(queue.getChanges());
         queues.remove(queue);
     }
 
-    private UnlimitedNonLinearChangeQueue<C> latestChangeSource;
-    public final void setLatestChangeSource(UnlimitedNonLinearChangeQueue<C> source) {
+    private NonLinearChangeQueue<C> latestChangeSource;
+    public final void setLatestChangeSource(NonLinearChangeQueue<C> source) {
         latestChangeSource = source;
     }
-    public final UnlimitedNonLinearChangeQueue<C> getLatestChangeSource() {
+    public final NonLinearChangeQueue<C> getLatestChangeSource() {
         return latestChangeSource;
     }
 
@@ -142,7 +142,7 @@ public class DirectedAcyclicGraphImpl<C> {
     }
 
     public final void recalculateAllValidChanges() {
-        queues.forEach(UnlimitedNonLinearChangeQueue::recalculateValidChanges);
+        queues.forEach(NonLinearChangeQueue::recalculateValidChanges);
     }
 
     public final void remapEdges(C outdated, C updated) {

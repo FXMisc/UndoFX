@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> {
+public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> implements NonLinearChangeQueue<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final C change;
@@ -33,7 +33,7 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> {
     public final SuspendableNo performingActionProperty() { return graph.performingActionProperty(); }
     public final boolean isPerformingAction() { return graph.isPerformingAction(); }
 
-    private final DirectedAcyclicGraphImpl<C> graph;
+    private final DirectedAcyclicGraph<C> graph;
 
     private final List<C> changes = new ArrayList<>();
     public final List<C> getChanges() { return Collections.unmodifiableList(changes); }
@@ -45,7 +45,7 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> {
 
     private int currentPosition = 0;
 
-    public UnlimitedNonLinearChangeQueue(DirectedAcyclicGraphImpl<C> graph) {
+    public UnlimitedNonLinearChangeQueue(DirectedAcyclicGraph<C> graph) {
         super();
         this.graph = graph;
         graph.registerQueue(this);
