@@ -1,6 +1,6 @@
 package org.fxmisc.undo;
 
-import org.fxmisc.undo.impl.nonlinear.DirectedAcyclicGraphImpl;
+import org.fxmisc.undo.impl.nonlinear.DirectedAcyclicGraph;
 import org.fxmisc.undo.impl.nonlinear.NonLinearUndoManagerImpl;
 import org.fxmisc.undo.impl.nonlinear.UnlimitedNonLinearChangeQueue;
 import org.fxmisc.undo.impl.nonlinear.ZeroSizeNonLinearChangeQueue;
@@ -13,7 +13,7 @@ import java.util.function.Function;
 
 public interface NonLinearUndoManagerFactory<C> {
 
-    DirectedAcyclicGraphImpl<C> getGraph();
+    DirectedAcyclicGraph<C> getGraph();
 
     default UndoManager createUnlimited(
             EventStream<C> changeStream,
