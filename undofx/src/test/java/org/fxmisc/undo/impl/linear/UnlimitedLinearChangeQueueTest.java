@@ -1,71 +1,17 @@
-package org.fxmisc.undo.impl;
+package org.fxmisc.undo.impl.linear;
 
 import static org.junit.Assert.*;
 
+import org.fxmisc.undo.impl.ChangeQueue;
 import org.fxmisc.undo.impl.ChangeQueue.QueuePosition;
+import org.fxmisc.undo.impl.linear.UnlimitedLinearChangeQueue;
 import org.junit.Test;
 
-public class FixedSizeChangeQueueTest {
-
-    @Test
-    public void testOverflow() {
-        ChangeQueue<Integer> queue = new FixedSizeChangeQueue<>(5);
-        queue.push(1, 2, 3);
-        queue.push(4, 5, 6, 7, 8, 9);
-
-        assertFalse(queue.hasNext());
-        assertTrue(queue.hasPrev());
-        assertEquals(Integer.valueOf(9), queue.prev());
-        assertTrue(queue.hasNext());
-        assertEquals(Integer.valueOf(8), queue.prev());
-        assertEquals(Integer.valueOf(7), queue.prev());
-        assertEquals(Integer.valueOf(6), queue.prev());
-        assertEquals(Integer.valueOf(5), queue.prev());
-        assertFalse(queue.hasPrev());
-        assertTrue(queue.hasNext());
-    }
-
-    @Test
-    public void testPositionValidityOnOverflow() {
-        // create empty queue
-        ChangeQueue<Integer> queue = new FixedSizeChangeQueue<>(1);
-
-        // check that the initial position is valid
-        QueuePosition pos0 = queue.getCurrentPosition();
-        assertTrue(pos0.isValid());
-
-        // push first element
-        queue.push(1);
-
-        // check that the initial position is still valid
-        // and that the current position is valid as well
-        assertTrue(pos0.isValid());
-        QueuePosition pos1 = queue.getCurrentPosition();
-        assertTrue(pos1.isValid());
-
-        // push one more element
-        queue.push(2);
-
-        // check that initial position is now invalid,
-        // previous position is still valid and
-        // the current position is valid as well
-        assertFalse(pos0.isValid());
-        assertTrue(pos1.isValid());
-        QueuePosition pos2 = queue.getCurrentPosition();
-        assertTrue(pos2.isValid());
-
-        // push two elements at once
-        queue.push(3, 4);
-
-        // check that all previous positions are invalid
-        assertFalse(pos0.isValid());
-        assertFalse(pos1.isValid());
-        assertFalse(pos2.isValid());
-    }
+public class UnlimitedLinearChangeQueueTest {
 
     @Test
     public void testPositionValidityOnUndo() {
-        ChangeQueue<Integer> queue = new FixedSizeChangeQueue<>(4);
+        ChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
         QueuePosition pos0 = queue.getCurrentPosition();
         queue.push(1);
         QueuePosition pos1 = queue.getCurrentPosition();
@@ -120,7 +66,7 @@ public class FixedSizeChangeQueueTest {
 
     @Test
     public void testPositionValidityOnForgetHistory() {
-        ChangeQueue<Integer> queue = new FixedSizeChangeQueue<>(4);
+        ChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
         QueuePosition pos0 = queue.getCurrentPosition();
         queue.push(1);
         QueuePosition pos1 = queue.getCurrentPosition();
@@ -144,7 +90,7 @@ public class FixedSizeChangeQueueTest {
 
     @Test
     public void testPositionEquality() {
-        ChangeQueue<Integer> queue = new FixedSizeChangeQueue<>(2);
+        ChangeQueue<Integer> queue = new UnlimitedLinearChangeQueue<>();
         queue.push(1);
         QueuePosition pos = queue.getCurrentPosition();
         assertEquals(pos, queue.getCurrentPosition());

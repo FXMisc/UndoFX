@@ -1,4 +1,4 @@
-package org.fxmisc.undo.impl;
+package org.fxmisc.undo.impl.linear;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -9,12 +9,13 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
 
 import org.fxmisc.undo.UndoManager;
+import org.fxmisc.undo.impl.ChangeQueue;
 import org.fxmisc.undo.impl.ChangeQueue.QueuePosition;
 import org.reactfx.EventStream;
 import org.reactfx.Subscription;
 import org.reactfx.SuspendableNo;
 
-public class UndoManagerImpl<C> implements UndoManager {
+public class LinearUndoManagerImpl<C> implements UndoManager {
 
     private class UndoPositionImpl implements UndoPosition {
         private final QueuePosition queuePos;
@@ -25,9 +26,8 @@ public class UndoManagerImpl<C> implements UndoManager {
 
         @Override
         public void mark() {
-            mark = queuePos;
             canMerge = false;
-            atMarkedPosition.invalidate();
+            queue.mark(queuePos);
         }
 
         @Override
@@ -41,34 +41,11 @@ public class UndoManagerImpl<C> implements UndoManager {
     private final Consumer<C> apply;
     private final BiFunction<C, C, Optional<C>> merge;
     private final Subscription subscription;
-    private final SuspendableNo performingAction = new SuspendableNo();
-
-    private final BooleanBinding undoAvailable = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return queue.hasPrev();
-        }
-    };
-
-    private final BooleanBinding redoAvailable = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return queue.hasNext();
-        }
-    };
-
-    private final BooleanBinding atMarkedPosition = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return mark.equals(queue.getCurrentPosition());
-        }
-    };
 
     private boolean canMerge;
-    private QueuePosition mark;
     private C expectedChange = null;
 
-    public UndoManagerImpl(
+    public LinearUndoManagerImpl(
             ChangeQueue<C> queue,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
@@ -78,7 +55,6 @@ public class UndoManagerImpl<C> implements UndoManager {
         this.invert = invert;
         this.apply = apply;
         this.merge = merge;
-        this.mark = queue.getCurrentPosition();
         this.subscription = changeSource.subscribe(this::changeObserved);
     }
 
@@ -92,9 +68,6 @@ public class UndoManagerImpl<C> implements UndoManager {
         if(isUndoAvailable()) {
             canMerge = false;
             performChange(invert.apply(queue.prev()));
-            undoAvailable.invalidate();
-            redoAvailable.invalidate();
-            atMarkedPosition.invalidate();
             return true;
         } else {
             return false;
@@ -106,58 +79,10 @@ public class UndoManagerImpl<C> implements UndoManager {
         if(isRedoAvailable()) {
             canMerge = false;
             performChange(queue.next());
-            undoAvailable.invalidate();
-            redoAvailable.invalidate();
-            atMarkedPosition.invalidate();
             return true;
         } else {
             return false;
         }
-    }
-
-    @Override
-    public boolean isUndoAvailable() {
-        return undoAvailable.get();
-    }
-
-    @Override
-    public ObservableBooleanValue undoAvailableProperty() {
-        return undoAvailable;
-    }
-
-    @Override
-    public boolean isRedoAvailable() {
-        return redoAvailable.get();
-    }
-
-    @Override
-    public ObservableBooleanValue redoAvailableProperty() {
-        return redoAvailable;
-    }
-
-    @Override
-    public boolean isPerformingAction() {
-        return performingAction.get();
-    }
-
-    @Override
-    public ObservableBooleanValue performingActionProperty() {
-        return performingAction;
-    }
-
-    @Override
-    public boolean isAtMarkedPosition() {
-        return atMarkedPosition.get();
-    }
-
-    @Override
-    public ObservableBooleanValue atMarkedPositionProperty() {
-        return atMarkedPosition;
-    }
-
-    @Override
-    public UndoPosition getCurrentPosition() {
-        return new UndoPositionImpl(queue.getCurrentPosition());
     }
 
     @Override
@@ -168,12 +93,11 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public void forgetHistory() {
         queue.forgetHistory();
-        undoAvailable.invalidate();
     }
 
     private void performChange(C change) {
         this.expectedChange = change;
-        performingAction.suspendWhile(() -> apply.accept(change));
+        queue.performingActionProperty().suspendWhile(() -> apply.accept(change));
     }
 
     private void changeObserved(C change) {
@@ -197,9 +121,6 @@ public class UndoManagerImpl<C> implements UndoManager {
             queue.push(change);
         }
         canMerge = true;
-        undoAvailable.invalidate();
-        redoAvailable.invalidate();
-        atMarkedPosition.invalidate();
     }
 
     @SuppressWarnings("unchecked")
@@ -210,5 +131,51 @@ public class UndoManagerImpl<C> implements UndoManager {
         } else {
             return (C[]) new Object[] { c1, c2 };
         }
+    }
+
+
+    @Override
+    public boolean isUndoAvailable() {
+        return queue.isUndoAvailable();
+    }
+
+    @Override
+    public ObservableBooleanValue undoAvailableProperty() {
+        return queue.undoAvailableProperty();
+    }
+
+    @Override
+    public boolean isRedoAvailable() {
+        return queue.isRedoAvailable();
+    }
+
+    @Override
+    public ObservableBooleanValue redoAvailableProperty() {
+        return queue.redoAvailableProperty();
+    }
+
+    @Override
+    public boolean isPerformingAction() {
+        return queue.isPerformingAction();
+    }
+
+    @Override
+    public ObservableBooleanValue performingActionProperty() {
+        return queue.performingActionProperty();
+    }
+
+    @Override
+    public boolean isAtMarkedPosition() {
+        return queue.isAtMarkedPosition();
+    }
+
+    @Override
+    public ObservableBooleanValue atMarkedPositionProperty() {
+        return queue.atMarkedPositionProperty();
+    }
+
+    @Override
+    public UndoPosition getCurrentPosition() {
+        return new UndoPositionImpl(queue.getCurrentPosition());
     }
 }
