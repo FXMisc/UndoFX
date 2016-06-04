@@ -12,7 +12,7 @@ public interface NonLinearChangeQueue<C> extends ChangeQueue<C> {
     
     public void recalculateValidChanges();
 
-    public void appliedRedo(C redo);
+    public void appliedChange();
     
     public boolean committedLastChange();
 

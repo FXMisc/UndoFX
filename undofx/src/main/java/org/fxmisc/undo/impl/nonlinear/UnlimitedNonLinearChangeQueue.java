@@ -60,6 +60,7 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
     public final void recalculateValidChanges() {
         undoNext = null;
         List<C> undos = getUndoChanges();
+        // TODO: account for empty list
         for (int i = undos.size() - 1; i >= 0; i--) {
             C possibleUndo = undos.get(i);
             if (graph.getIsValidUndo().test(possibleUndo)) {
@@ -70,6 +71,7 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
 
         redoNext = null;
         List<C> redos = getRedoChanges();
+        // TODO: account for empty list
         for (int i = 0; i < redos.size(); i++) {
             C possibleRedo = redos.get(i);
             if (graph.getIsValidRedo().test(possibleRedo)) {
@@ -118,6 +120,8 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
         }
 
         currentPosition++;
+        graph.updateChangesWithRedo(this, validRedo);
+        appliedChange();
         return validRedo;
     }
 
@@ -158,6 +162,7 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
         }
 
         currentPosition--;
+        appliedChange();
         return validUndo;
     }
 
@@ -194,14 +199,11 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
                 this.changes.add(c);
             }
             currentPosition += changes.length;
-            graph.setLatestChangeSource(this);
+            appliedChange();
         });
     }
 
-    public final void appliedRedo(C redo) {
-        graph.updateChangesWithRedo(this, redo);
-        graph.setLatestChangeSource(this);
-    }
+    public final void appliedChange() { graph.setLatestChangeSource(this); }
 
     public final boolean committedLastChange() { return this == graph.getLatestChangeSource(); }
 
@@ -256,7 +258,6 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
 
     public final void updateRedosPostChangeBubble(C original, BubbledResult<C> bubbledResult) {
         updateRedos(outdated -> graph.getRedoUpdaterPostBubble().apply(outdated, original, bubbledResult));
-
     }
 
     private void updateRedos(Function<C, C> updater) {

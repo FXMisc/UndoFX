@@ -23,7 +23,7 @@ public class ZeroSizeNonLinearChangeQueue<C> extends ZeroSizeLinearChangeQueue<C
     }
 
     @Override
-    public void appliedRedo(C change) {
+    public void appliedChange() {
         // nothing to do
     }
 
