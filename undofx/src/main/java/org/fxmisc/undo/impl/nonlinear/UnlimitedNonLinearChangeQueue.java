@@ -60,23 +60,25 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
     public final void recalculateValidChanges() {
         undoNext = null;
         List<C> undos = getUndoChanges();
-        // TODO: account for empty list
-        for (int i = undos.size() - 1; i >= 0; i--) {
-            C possibleUndo = undos.get(i);
-            if (graph.getIsValidUndo().test(possibleUndo)) {
-                undoNext = new IndexedChange<>(i, possibleUndo);
-                break;
+        if (!undos.isEmpty()) {
+            for (int i = undos.size() - 1; i >= 0; i--) {
+                C possibleUndo = undos.get(i);
+                if (graph.getIsValidUndo().test(possibleUndo)) {
+                    undoNext = new IndexedChange<>(i, possibleUndo);
+                    break;
+                }
             }
         }
 
         redoNext = null;
         List<C> redos = getRedoChanges();
-        // TODO: account for empty list
-        for (int i = 0; i < redos.size(); i++) {
-            C possibleRedo = redos.get(i);
-            if (graph.getIsValidRedo().test(possibleRedo)) {
-                redoNext = new IndexedChange<>(i, possibleRedo);
-                break;
+        if (!redos.isEmpty()) {
+            for (int i = 0; i < redos.size(); i++) {
+                C possibleRedo = redos.get(i);
+                if (graph.getIsValidRedo().test(possibleRedo)) {
+                    redoNext = new IndexedChange<>(i, possibleRedo);
+                    break;
+                }
             }
         }
 
