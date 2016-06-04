@@ -39,11 +39,13 @@ public interface DirectedAcyclicGraph<C> {
 
     public BubbledResult<C> bubbleUndo(C change);
 
+    public void updateChangesWithPush(C pushedChange);
+
+    public void updateChangesWithRedo(NonLinearChangeQueue<C> source, C redo);
+
     public void updateChangesPostUndoBubble(C original, BubbledResult<C> bubbledResult);
 
     public void updateRedosPostRedoBubble(C original, BubbledResult<C> bubbledResult);
-
-    public void updateQueueChanges(C pushedChange);
 
     public void recalculateAllValidChanges();
 

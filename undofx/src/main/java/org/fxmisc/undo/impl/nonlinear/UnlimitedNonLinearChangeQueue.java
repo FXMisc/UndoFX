@@ -6,6 +6,7 @@ import org.reactfx.SuspendableNo;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> implements NonLinearChangeQueue<C> {
 
@@ -135,6 +136,7 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
                 }
                 changes.set(nextUndoIndex, undo);
             }
+            graph.forget(Collections.singletonList(undo));
 
             validUndo = undo;
         } else {
@@ -150,6 +152,8 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
 
             changes.add(currentPosition - 1, bubbled);
 
+            // no need to forget bubbled change since it hasn't technically been added to graph
+            //  either will be merged into new change, readded, or undone (moved to redos)
             validUndo = bubbled;
         }
 
@@ -185,43 +189,54 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
 
         performingActionProperty().suspendWhile(() -> {
             for(C c: changes) {
-                graph.updateQueueChanges(c);
+                graph.updateChangesWithPush(c);
 
                 this.changes.add(c);
             }
             currentPosition += changes.length;
-            appliedChange();
+            graph.setLatestChangeSource(this);
         });
     }
 
-    public final void appliedChange() { graph.setLatestChangeSource(this); }
+    public final void appliedRedo(C redo) {
+        graph.updateChangesWithRedo(this, redo);
+        graph.setLatestChangeSource(this);
+    }
 
     public final boolean committedLastChange() { return this == graph.getLatestChangeSource(); }
 
-    public final void updateChanges(C pushedChange) {
-        getUndoChanges().replaceAll(outdatedUndo -> {
-            C updatedUndo = graph.getUndoUpdater().apply(pushedChange, outdatedUndo);
+    public final void updateChangesWithPush(C pushedChange) {
+        getUndoChanges().replaceAll(outdatedUndo -> updateUndoWithPushedChange(outdatedUndo, pushedChange));
 
-            graph.testForDependency(pushedChange, updatedUndo);
-
-            if (outdatedUndo.equals(updatedUndo)) {
-                return outdatedUndo;
-            } else {
-                graph.remapEdges(outdatedUndo, updatedUndo);
-                return updatedUndo;
-            }
-        });
-
-        getRedoChanges().replaceAll(outdatedRedo -> {
-            C updatedRedo = graph.getRedoUpdater().apply(pushedChange, outdatedRedo);
-
-            return outdatedRedo.equals(updatedRedo)
-                    ? outdatedRedo
-                    : updatedRedo;
-        });
+        updateRedosWithAddedChange(pushedChange);
     }
 
-    public final void updateChangesPostBubble(C original, BubbledResult<C> bubbledResult) {
+    public final void updateChangesWithRedo(C redoneChange) {
+        if (currentPosition - 2 >= 0) {
+            changes.subList(0, currentPosition - 2).replaceAll(outdatedUndo -> updateUndoWithPushedChange(outdatedUndo, redoneChange));
+        }
+
+        updateRedosWithAddedChange(redoneChange);
+    }
+
+    private C updateUndoWithPushedChange(C outdatedUndo, C pushedChange) {
+        C updatedUndo = graph.getUndoUpdater().apply(pushedChange, outdatedUndo);
+
+        graph.testForDependency(pushedChange, updatedUndo);
+
+        if (outdatedUndo.equals(updatedUndo)) {
+            return outdatedUndo;
+        } else {
+            graph.remapEdges(outdatedUndo, updatedUndo);
+            return updatedUndo;
+        }
+    }
+
+    private void updateRedosWithAddedChange(C addedChange) {
+        updateRedos(outdatedRedo -> graph.getRedoUpdater().apply(addedChange, outdatedRedo));
+    }
+
+    public final void updateChangesPostUndoBubble(C original, BubbledResult<C> bubbledResult) {
         getUndoChanges().replaceAll(outdatedChange -> {
             if (outdatedChange.equals(original)) {
                 return outdatedChange;
@@ -240,12 +255,13 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
     }
 
     public final void updateRedosPostChangeBubble(C original, BubbledResult<C> bubbledResult) {
-        getRedoChanges().replaceAll(outdatedChange -> {
-            if (outdatedChange.equals(original)) {
-                return outdatedChange;
-            }
+        updateRedos(outdated -> graph.getRedoUpdaterPostBubble().apply(outdated, original, bubbledResult));
 
-            C updatedChange = graph.getRedoUpdaterPostBubble().apply(outdatedChange, original, bubbledResult);
+    }
+
+    private void updateRedos(Function<C, C> updater) {
+        getRedoChanges().replaceAll(outdatedChange -> {
+            C updatedChange = updater.apply(outdatedChange);
 
             return !outdatedChange.equals(updatedChange)
                     ? updatedChange

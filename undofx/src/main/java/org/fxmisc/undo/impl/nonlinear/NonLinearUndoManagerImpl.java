@@ -64,7 +64,7 @@ public class NonLinearUndoManagerImpl<C> implements UndoManager {
     public boolean undo() {
         if(isUndoAvailable()) {
             canMerge = false;
-            performChange(invert.apply(queue.prev()));
+            performChange(invert.apply(queue.prev()), false);
             return true;
         } else {
             return false;
@@ -75,7 +75,7 @@ public class NonLinearUndoManagerImpl<C> implements UndoManager {
     public boolean redo() {
         if(isRedoAvailable()) {
             canMerge = false;
-            performChange(queue.next());
+            performChange(queue.next(), true);
             return true;
         } else {
             return false;
@@ -92,11 +92,11 @@ public class NonLinearUndoManagerImpl<C> implements UndoManager {
         queue.forgetHistory();
     }
 
-    private void performChange(C change) {
+    private void performChange(C change, boolean isRedo) {
         this.expectedChange = change;
         queue.performingActionProperty().suspendWhile(() -> {
             apply.accept(change);
-            queue.appliedChange();
+            if (isRedo) { queue.appliedRedo(change); }
         });
     }
 

@@ -12,13 +12,15 @@ public interface NonLinearChangeQueue<C> extends ChangeQueue<C> {
     
     public void recalculateValidChanges();
 
-    public void appliedChange();
+    public void appliedRedo(C redo);
     
     public boolean committedLastChange();
 
-    public void updateChanges(C pushedChange);
+    public void updateChangesWithPush(C pushedChange);
 
-    public void updateChangesPostBubble(C original, BubbledResult<C> bubbledResult);
+    public void updateChangesWithRedo(C redo);
+
+    public void updateChangesPostUndoBubble(C original, BubbledResult<C> bubbledResult);
 
     public void updateRedosPostChangeBubble(C original, BubbledResult<C> bubbledResult);
 }

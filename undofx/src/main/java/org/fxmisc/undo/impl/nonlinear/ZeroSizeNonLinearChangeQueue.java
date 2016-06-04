@@ -23,7 +23,7 @@ public class ZeroSizeNonLinearChangeQueue<C> extends ZeroSizeLinearChangeQueue<C
     }
 
     @Override
-    public void appliedChange() {
+    public void appliedRedo(C change) {
         // nothing to do
     }
 
@@ -33,12 +33,17 @@ public class ZeroSizeNonLinearChangeQueue<C> extends ZeroSizeLinearChangeQueue<C
     }
 
     @Override
-    public void updateChanges(C pushedChange) {
+    public void updateChangesWithPush(C pushedChange) {
         // nothing to do
     }
 
     @Override
-    public void updateChangesPostBubble(C original, BubbledResult<C> bubbledResult) {
+    public void updateChangesWithRedo(C redo) {
+        // nothing to do
+    }
+
+    @Override
+    public void updateChangesPostUndoBubble(C original, BubbledResult<C> bubbledResult) {
         // nothing to do
     }
 

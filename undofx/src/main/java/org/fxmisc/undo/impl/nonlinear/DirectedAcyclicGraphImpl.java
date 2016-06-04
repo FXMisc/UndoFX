@@ -129,16 +129,26 @@ public class DirectedAcyclicGraphImpl<C> implements DirectedAcyclicGraph<C> {
         return undoBubbler.apply(change, dependencies);
     }
 
+    public final void updateChangesWithPush(C pushedChange) {
+        queues.forEach(q -> q.updateChangesWithPush(pushedChange));
+    }
+
+    public final void updateChangesWithRedo(NonLinearChangeQueue<C> source, C redo) {
+        queues.forEach(q -> {
+            if (q == source) {
+                q.updateChangesWithRedo(redo);
+            } else {
+                q.updateChangesWithPush(redo);
+            }
+        });
+    }
+
     public final void updateChangesPostUndoBubble(C original, BubbledResult<C> bubbledResult) {
-        queues.forEach(q -> q.updateChangesPostBubble(original, bubbledResult));
+        queues.forEach(q -> q.updateChangesPostUndoBubble(original, bubbledResult));
     }
 
     public final void updateRedosPostRedoBubble(C original, BubbledResult<C> bubbledResult) {
         queues.forEach(q -> q.updateRedosPostChangeBubble(original, bubbledResult));
-    }
-
-    public final void updateQueueChanges(C pushedChange) {
-        queues.forEach(q -> q.updateChanges(pushedChange));
     }
 
     public final void recalculateAllValidChanges() {
