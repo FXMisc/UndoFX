@@ -98,7 +98,7 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
         C bubbledChange = bubbledResult.getBubbled();
 
         C validRedo;
-        if (redo.equals(bubbledChange)) {
+        if (redo == bubbledChange) {
             if (redoNext.getIndex() != currentPosition) {
                 int index = redoNext.getIndex();
                 int iterationCount = index - currentPosition;
@@ -224,7 +224,7 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
 
         graph.testForDependency(pushedChange, updatedUndo);
 
-        if (outdatedUndo.equals(updatedUndo)) {
+        if (outdatedUndo == updatedUndo) {
             return outdatedUndo;
         } else {
             graph.remapEdges(outdatedUndo, updatedUndo);
@@ -238,13 +238,13 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
 
     public final void updateChangesPostUndoBubble(C original, BubbledResult<C> bubbledResult) {
         getUndoChanges().replaceAll(outdatedChange -> {
-            if (outdatedChange.equals(original)) {
+            if (outdatedChange == original) {
                 return outdatedChange;
             }
 
             C updatedChange = graph.getUndoUpdaterPostBubble().apply(outdatedChange, original, bubbledResult);
 
-            if (!outdatedChange.equals(updatedChange)) {
+            if (outdatedChange != updatedChange) {
                 graph.remapEdges(outdatedChange, updatedChange);
                 return updatedChange;
             } else {
@@ -263,7 +263,7 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
         getRedoChanges().replaceAll(outdatedChange -> {
             C updatedChange = updater.apply(outdatedChange);
 
-            return !outdatedChange.equals(updatedChange)
+            return outdatedChange != updatedChange
                     ? updatedChange
                     : outdatedChange;
         });
