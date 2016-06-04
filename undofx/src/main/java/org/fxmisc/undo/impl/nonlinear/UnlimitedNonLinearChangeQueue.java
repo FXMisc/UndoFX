@@ -202,7 +202,7 @@ public class UnlimitedNonLinearChangeQueue<C> extends ChangeQueueBase<C> impleme
         getUndoChanges().replaceAll(outdatedUndo -> {
             C updatedUndo = graph.getUndoUpdater().apply(pushedChange, outdatedUndo);
 
-            graph.testForDependencies(pushedChange, updatedUndo);
+            graph.testForDependency(pushedChange, updatedUndo);
 
             if (outdatedUndo.equals(updatedUndo)) {
                 return outdatedUndo;

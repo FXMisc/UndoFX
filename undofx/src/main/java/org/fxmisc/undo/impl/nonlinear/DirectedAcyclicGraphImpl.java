@@ -158,7 +158,7 @@ public class DirectedAcyclicGraphImpl<C> implements DirectedAcyclicGraph<C> {
         });
     }
 
-    public final void testForDependencies(C from, C to) {
+    public final void testForDependency(C from, C to) {
         if (firstDependsOnSecond.test(from, to)) {
             addEdgeFromTo(from, to);
         }

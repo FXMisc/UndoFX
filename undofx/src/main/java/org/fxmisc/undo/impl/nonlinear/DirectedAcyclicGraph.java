@@ -49,7 +49,7 @@ public interface DirectedAcyclicGraph<C> {
 
     public void remapEdges(C outdated, C updated);
 
-    public void testForDependencies(C from, C to);
+    public void testForDependency(C from, C to);
 
     public void forget(List<C> changes);
 
