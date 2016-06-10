@@ -172,4 +172,4 @@ License
 Links
 -----
 
-[API Documentation (Javadoc)](http://www.fxmisc.org/undo/javadoc/org/fxmisc/undo/package-summary.html)  
+[API Documentation (Javadoc)](http://fxmisc.github.io/undo/javadoc/org/fxmisc/undo/package-summary.html)  
