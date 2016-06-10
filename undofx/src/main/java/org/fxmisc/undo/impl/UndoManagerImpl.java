@@ -174,6 +174,10 @@ public class UndoManagerImpl<C> implements UndoManager {
     private void performChange(C change) {
         this.expectedChange = change;
         performingAction.suspendWhile(() -> apply.accept(change));
+        if(this.expectedChange != null) {
+            throw new IllegalStateException("Expected change not received:\n"
+                    + this.expectedChange);
+        }
     }
 
     private void changeObserved(C change) {

@@ -17,7 +17,7 @@ public class UndoManagerTest {
         EventSource<Integer> changes = new EventSource<>();
         Var<Integer> lastAction = Var.newSimpleVar(null);
         UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
-                changes, i -> -i, lastAction::setValue);
+                changes, i -> -i, i -> { lastAction.setValue(i); changes.push(i); });
 
         changes.push(3);
         changes.push(7);
@@ -40,7 +40,7 @@ public class UndoManagerTest {
     public void testMark() {
         EventSource<Integer> changes = new EventSource<>();
         UndoManager um = UndoManagerFactory.fixedSizeHistoryUndoManager(
-                changes, c -> c, c -> {}, 4);
+                changes, c -> c, changes::push, 4);
 
         assertTrue(um.atMarkedPositionProperty().get());
         changes.push(1);
@@ -99,5 +99,16 @@ public class UndoManagerTest {
 
         changes.push(2); // should have caused invalidation of atMarkedPositionProperty
         assertEquals(0, latch.getCount());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFailFastWhenExpectedChangeNotReceived() {
+        EventSource<Integer> changes = new EventSource<>();
+        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+                changes, i -> -i, i -> {});
+
+        changes.push(1);
+
+        um.undo(); // should throw because the undone change is not received back
     }
 }
