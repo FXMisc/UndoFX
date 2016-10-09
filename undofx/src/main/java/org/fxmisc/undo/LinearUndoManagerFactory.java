@@ -6,10 +6,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.fxmisc.undo.impl.ChangeQueue;
-import org.fxmisc.undo.impl.FixedSizeLinearChangeQueue;
-import org.fxmisc.undo.impl.LinearUndoManager;
-import org.fxmisc.undo.impl.UnlimitedLinearChangeQueue;
-import org.fxmisc.undo.impl.ZeroSizeLinearChangeQueue;
+import org.fxmisc.undo.impl.linear.FixedSizeLinearChangeQueue;
+import org.fxmisc.undo.impl.linear.LinearUndoManager;
+import org.fxmisc.undo.impl.linear.UnlimitedLinearChangeQueue;
+import org.fxmisc.undo.impl.linear.ZeroSizeLinearChangeQueue;
 import org.reactfx.EventStream;
 
 public interface LinearUndoManagerFactory {

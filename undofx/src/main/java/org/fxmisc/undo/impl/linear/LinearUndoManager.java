@@ -1,4 +1,4 @@
-package org.fxmisc.undo.impl;
+package org.fxmisc.undo.impl.linear;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -9,6 +9,7 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
 
 import org.fxmisc.undo.UndoManager;
+import org.fxmisc.undo.impl.ChangeQueue;
 import org.fxmisc.undo.impl.ChangeQueue.QueuePosition;
 import org.reactfx.EventStream;
 import org.reactfx.Subscription;
