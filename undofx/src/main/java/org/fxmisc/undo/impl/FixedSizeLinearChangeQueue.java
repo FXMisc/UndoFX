@@ -2,7 +2,7 @@ package org.fxmisc.undo.impl;
 
 import java.util.NoSuchElementException;
 
-public class FixedSizeLinearChangeQueue<C> implements ChangeQueue<C> {
+public class FixedSizeLinearChangeQueue<C> extends ChangeQueueBase<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final int arrayPos;
@@ -61,6 +61,7 @@ public class FixedSizeLinearChangeQueue<C> implements ChangeQueue<C> {
 
         this.capacity = capacity;
         this.changes = new RevisionedChange[capacity];
+        this.mark = getCurrentPosition();
     }
 
     @Override
@@ -76,7 +77,9 @@ public class FixedSizeLinearChangeQueue<C> implements ChangeQueue<C> {
     @Override
     public C next() {
         if(currentPosition < size) {
-            return fetch(currentPosition++).getChange();
+            int index = currentPosition++;
+            invalidateBindings();
+            return fetch(index).getChange();
         } else {
             throw new NoSuchElementException();
         }
@@ -85,7 +88,9 @@ public class FixedSizeLinearChangeQueue<C> implements ChangeQueue<C> {
     @Override
     public C prev() {
         if(currentPosition > 0) {
-            return fetch(--currentPosition).getChange();
+            int index = --currentPosition;
+            invalidateBindings();
+            return fetch(index).getChange();
         } else {
             throw new NoSuchElementException();
         }
@@ -97,6 +102,7 @@ public class FixedSizeLinearChangeQueue<C> implements ChangeQueue<C> {
         start = arrayIndex(currentPosition);
         size -= currentPosition;
         currentPosition = 0;
+        undoAvailable.invalidate();
     }
 
     @Override
@@ -116,6 +122,7 @@ public class FixedSizeLinearChangeQueue<C> implements ChangeQueue<C> {
         } else {
             size = currentPosition;
         }
+        invalidateBindings();
     }
 
     @Override
