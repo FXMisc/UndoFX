@@ -5,18 +5,22 @@ import static org.junit.Assert.*;
 import java.util.concurrent.CountDownLatch;
 
 import org.fxmisc.undo.UndoManager;
-import org.fxmisc.undo.LinearUndoManagerFactory;
+import org.fxmisc.undo.UndoManagerFactory;
 import org.junit.Test;
 import org.reactfx.EventSource;
 import org.reactfx.value.Var;
 
 public class LinearUndoManagerTest {
 
+    private UndoManagerFactory<Integer> getLinearFactory() {
+        return UndoManagerFactory.linearFactory();
+    }
+
     @Test
     public void testUndoInvertsTheChange() {
         EventSource<Integer> changes = new EventSource<>();
         Var<Integer> lastAction = Var.newSimpleVar(null);
-        UndoManager um = LinearUndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager um = getLinearFactory().unlimitedHistory(
                 changes, i -> -i, i -> { lastAction.setValue(i); changes.push(i); });
 
         changes.push(3);
@@ -39,8 +43,7 @@ public class LinearUndoManagerTest {
     @Test
     public void testMark() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = LinearUndoManagerFactory.fixedSizeHistoryUndoManager(
-                changes, c -> c, changes::push, 4);
+        UndoManager um = getLinearFactory().fixedSizeHistory(4, changes, c -> c, changes::push);
 
         assertTrue(um.atMarkedPositionProperty().get());
         changes.push(1);
@@ -64,7 +67,7 @@ public class LinearUndoManagerTest {
     @Test
     public void zeroHistoryUndoManagerMark() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = LinearUndoManagerFactory.zeroHistoryUndoManager(changes);
+        UndoManager um = getLinearFactory().zeroHistory(changes);
 
         assertTrue(um.atMarkedPositionProperty().get());
         changes.push(1);
@@ -84,7 +87,7 @@ public class LinearUndoManagerTest {
     @Test
     public void testAtMarkedPositionRevalidation() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = LinearUndoManagerFactory.zeroHistoryUndoManager(changes);
+        UndoManager um = getLinearFactory().zeroHistory(changes);
 
         um.atMarkedPositionProperty().get(); // atMarkedPositionProperty is now valid
 
@@ -104,8 +107,7 @@ public class LinearUndoManagerTest {
     @Test(expected = IllegalStateException.class)
     public void testFailFastWhenExpectedChangeNotReceived() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = LinearUndoManagerFactory.unlimitedHistoryUndoManager(
-                changes, i -> -i, i -> {});
+        UndoManager um = getLinearFactory().unlimitedHistory(changes, i -> -i, i -> {});
 
         changes.push(1);
 
