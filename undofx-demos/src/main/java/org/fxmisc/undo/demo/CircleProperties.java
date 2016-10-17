@@ -188,7 +188,7 @@ public class CircleProperties extends Application {
         EventStream<CenterYChange> centerYChanges = changesOf(circle.centerYProperty()).map(c -> new CenterYChange(c));
         changes = merge(colorChanges, radiusChanges, centerXChanges, centerYChanges);
 
-        undoManager = UndoManagerFactory.unlimitedHistoryUndoManager(
+        undoManager = UndoManagerFactory.<CircleChange<?>>linearFactory().unlimitedHistory(
                     changes, // stream of changes to observe
                     c -> c.invert(), // function to invert a change
                     c -> c.redo(), // function to undo a change
