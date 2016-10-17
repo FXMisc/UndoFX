@@ -16,7 +16,9 @@ public class UnlimitedNonlinearChangeQueue<C> extends ChangeQueueBase<C> impleme
 
         QueuePositionImpl(C change) { this.change = change; }
 
-        @Override public boolean isValid() { return changes.contains(change); }
+        @Override public boolean isValid() {
+            return (change == null && changes.isEmpty()) || changes.contains(change);
+        }
 
         @Override
         public boolean equals(Object other) {
@@ -275,7 +277,7 @@ public class UnlimitedNonlinearChangeQueue<C> extends ChangeQueueBase<C> impleme
 
     @Override
     public QueuePosition getCurrentPosition() {
-        return new QueuePositionImpl(changes.get(currentPosition));
+        return new QueuePositionImpl(changes.isEmpty() ? null : changes.get(currentPosition));
     }
 
 }
