@@ -14,7 +14,7 @@ import org.reactfx.EventStream;
 import org.reactfx.Subscription;
 import org.reactfx.SuspendableNo;
 
-public class UndoManagerImpl<C> implements UndoManager {
+public class LinearUndoManager<C> implements UndoManager {
 
     private class UndoPositionImpl implements UndoPosition {
         private final QueuePosition queuePos;
@@ -68,7 +68,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     private QueuePosition mark;
     private C expectedChange = null;
 
-    public UndoManagerImpl(
+    public LinearUndoManager(
             ChangeQueue<C> queue,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
