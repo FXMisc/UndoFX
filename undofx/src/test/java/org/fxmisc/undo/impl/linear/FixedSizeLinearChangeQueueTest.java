@@ -1,8 +1,10 @@
-package org.fxmisc.undo.impl;
+package org.fxmisc.undo.impl.linear;
 
 import static org.junit.Assert.*;
 
+import org.fxmisc.undo.impl.ChangeQueue;
 import org.fxmisc.undo.impl.ChangeQueue.QueuePosition;
+import org.fxmisc.undo.impl.linear.FixedSizeLinearChangeQueue;
 import org.junit.Test;
 
 public class FixedSizeLinearChangeQueueTest {

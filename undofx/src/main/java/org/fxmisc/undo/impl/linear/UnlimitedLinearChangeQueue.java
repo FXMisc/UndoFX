@@ -1,4 +1,6 @@
-package org.fxmisc.undo.impl;
+package org.fxmisc.undo.impl.linear;
+
+import org.fxmisc.undo.impl.ChangeQueue;
 
 import java.util.ArrayList;
 

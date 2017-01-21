@@ -1,4 +1,4 @@
-package org.fxmisc.undo.impl;
+package org.fxmisc.undo.impl.linear;
 
 import static org.junit.Assert.*;
 
