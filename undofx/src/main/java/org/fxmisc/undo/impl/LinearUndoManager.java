@@ -116,51 +116,6 @@ public class LinearUndoManager<C> implements UndoManager {
     }
 
     @Override
-    public boolean isUndoAvailable() {
-        return undoAvailable.get();
-    }
-
-    @Override
-    public ObservableBooleanValue undoAvailableProperty() {
-        return undoAvailable;
-    }
-
-    @Override
-    public boolean isRedoAvailable() {
-        return redoAvailable.get();
-    }
-
-    @Override
-    public ObservableBooleanValue redoAvailableProperty() {
-        return redoAvailable;
-    }
-
-    @Override
-    public boolean isPerformingAction() {
-        return performingAction.get();
-    }
-
-    @Override
-    public ObservableBooleanValue performingActionProperty() {
-        return performingAction;
-    }
-
-    @Override
-    public boolean isAtMarkedPosition() {
-        return atMarkedPosition.get();
-    }
-
-    @Override
-    public ObservableBooleanValue atMarkedPositionProperty() {
-        return atMarkedPosition;
-    }
-
-    @Override
-    public UndoPosition getCurrentPosition() {
-        return new UndoPositionImpl(queue.getCurrentPosition());
-    }
-
-    @Override
     public void preventMerge() {
         canMerge = false;
     }
@@ -214,5 +169,50 @@ public class LinearUndoManager<C> implements UndoManager {
         } else {
             return (C[]) new Object[] { c1, c2 };
         }
+    }
+
+    @Override
+    public boolean isUndoAvailable() {
+        return undoAvailable.get();
+    }
+
+    @Override
+    public ObservableBooleanValue undoAvailableProperty() {
+        return undoAvailable;
+    }
+
+    @Override
+    public boolean isRedoAvailable() {
+        return redoAvailable.get();
+    }
+
+    @Override
+    public ObservableBooleanValue redoAvailableProperty() {
+        return redoAvailable;
+    }
+
+    @Override
+    public boolean isPerformingAction() {
+        return performingAction.get();
+    }
+
+    @Override
+    public ObservableBooleanValue performingActionProperty() {
+        return performingAction;
+    }
+
+    @Override
+    public boolean isAtMarkedPosition() {
+        return atMarkedPosition.get();
+    }
+
+    @Override
+    public ObservableBooleanValue atMarkedPositionProperty() {
+        return atMarkedPosition;
+    }
+
+    @Override
+    public UndoPosition getCurrentPosition() {
+        return new UndoPositionImpl(queue.getCurrentPosition());
     }
 }
