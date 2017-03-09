@@ -1,4 +1,4 @@
-package org.fxmisc.undo;
+package org.fxmisc.undo.impl.nonlinear;
 import com.nitorcreations.junit.runners.NestedRunner;
 import org.junit.runner.RunWith;
 

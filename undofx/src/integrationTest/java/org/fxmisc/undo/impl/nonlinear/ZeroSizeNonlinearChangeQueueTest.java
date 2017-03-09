@@ -1,4 +1,4 @@
-package org.fxmisc.undo;
+package org.fxmisc.undo.impl.nonlinear;
 
 import org.fxmisc.richtextfx.DocumentDAG;
 import org.fxmisc.richtextfx.DocumentModel;

@@ -1,10 +1,11 @@
-package org.fxmisc.undo;
+package org.fxmisc.undo.impl.nonlinear;
 
 import org.fxmisc.richtextfx.DocumentDAG;
 import org.fxmisc.richtextfx.DocumentModel;
 import org.fxmisc.richtextfx.DocumentView;
 import org.fxmisc.richtextfx.TextChange;
 import org.fxmisc.richtextfx.UndoBubbleType;
+import org.fxmisc.undo.UndoManager;
 import org.fxmisc.undo.impl.ChangeQueue;
 import org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue;
 import org.fxmisc.undo.impl.nonlinear.NonlinearUndoManager;
