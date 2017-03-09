@@ -1,10 +1,10 @@
 package org.fxmisc.undo.impl.linear;
-
-import org.fxmisc.undo.impl.ChangeQueue;
+import org.fxmisc.undo.impl.ChangeQueueBase;
+import org.reactfx.SuspendableNo;
 
 import java.util.NoSuchElementException;
 
-public class ZeroSizeLinearChangeQueue<C> implements ChangeQueue<C> {
+public class ZeroSizeLinearChangeQueue<C> extends ChangeQueueBase<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final long rev;
@@ -34,7 +34,15 @@ public class ZeroSizeLinearChangeQueue<C> implements ChangeQueue<C> {
         }
     }
 
+    private final SuspendableNo performingAction = new SuspendableNo();
+    @Override public boolean isPerformingAction() { return performingAction.get(); }
+    @Override public SuspendableNo performingActionProperty() { return performingAction; }
+
     private long revision = 0;
+
+    public ZeroSizeLinearChangeQueue() {
+        this.mark = getCurrentPosition();
+    }
 
     @Override
     public boolean hasNext() {
@@ -60,6 +68,7 @@ public class ZeroSizeLinearChangeQueue<C> implements ChangeQueue<C> {
     @SafeVarargs
     public final void push(C... changes) {
         ++revision;
+        atMarkedPosition.invalidate();
     }
 
     @Override
