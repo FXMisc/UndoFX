@@ -4,7 +4,7 @@ import org.reactfx.SuspendableNo;
 
 import java.util.NoSuchElementException;
 
-public class ZeroSizeLinearChangeQueue<C> extends ChangeQueueBase<C> {
+public class ZeroSizeLinearChangeQueue<C> extends ChangeQueueBase<C> implements LinearChangeQueue<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final long rev;

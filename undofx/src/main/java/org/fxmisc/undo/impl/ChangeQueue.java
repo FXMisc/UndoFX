@@ -35,9 +35,6 @@ public interface ChangeQueue<C> {
 
     C prev();
 
-    @SuppressWarnings({"unchecked"})
-    void push(C... changes);
-
     QueuePosition getCurrentPosition();
 
     void forgetHistory();

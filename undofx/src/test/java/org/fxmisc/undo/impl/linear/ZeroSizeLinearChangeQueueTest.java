@@ -11,7 +11,7 @@ public class ZeroSizeLinearChangeQueueTest {
 
     @Test
     public void testPositionValidityOnOverflow() {
-        ChangeQueue<Integer> queue = new ZeroSizeLinearChangeQueue<>();
+        LinearChangeQueue<Integer> queue = new ZeroSizeLinearChangeQueue<>();
         QueuePosition pos0 = queue.getCurrentPosition();
         assertTrue(pos0.isValid());
         queue.push(1);

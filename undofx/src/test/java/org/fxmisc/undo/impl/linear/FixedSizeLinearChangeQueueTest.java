@@ -11,7 +11,7 @@ public class FixedSizeLinearChangeQueueTest {
 
     @Test
     public void testOverflow() {
-        ChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(5);
+        LinearChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(5);
         queue.push(1, 2, 3);
         queue.push(4, 5, 6, 7, 8, 9);
 
@@ -30,7 +30,7 @@ public class FixedSizeLinearChangeQueueTest {
     @Test
     public void testPositionValidityOnOverflow() {
         // create empty queue
-        ChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(1);
+        LinearChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(1);
 
         // check that the initial position is valid
         QueuePosition pos0 = queue.getCurrentPosition();
@@ -67,7 +67,7 @@ public class FixedSizeLinearChangeQueueTest {
 
     @Test
     public void testPositionValidityOnUndo() {
-        ChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(4);
+        LinearChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(4);
         QueuePosition pos0 = queue.getCurrentPosition();
         queue.push(1);
         QueuePosition pos1 = queue.getCurrentPosition();
@@ -122,7 +122,7 @@ public class FixedSizeLinearChangeQueueTest {
 
     @Test
     public void testPositionValidityOnForgetHistory() {
-        ChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(4);
+        LinearChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(4);
         QueuePosition pos0 = queue.getCurrentPosition();
         queue.push(1);
         QueuePosition pos1 = queue.getCurrentPosition();
@@ -146,7 +146,7 @@ public class FixedSizeLinearChangeQueueTest {
 
     @Test
     public void testPositionEquality() {
-        ChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(2);
+        LinearChangeQueue<Integer> queue = new FixedSizeLinearChangeQueue<>(2);
         queue.push(1);
         QueuePosition pos = queue.getCurrentPosition();
         assertEquals(pos, queue.getCurrentPosition());

@@ -5,7 +5,7 @@ import org.reactfx.SuspendableNo;
 
 import java.util.ArrayList;
 
-public class UnlimitedLinearChangeQueue<C> extends ChangeQueueBase<C> {
+public class UnlimitedLinearChangeQueue<C> extends ChangeQueueBase<C> implements LinearChangeQueue<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final int allTimePos;
