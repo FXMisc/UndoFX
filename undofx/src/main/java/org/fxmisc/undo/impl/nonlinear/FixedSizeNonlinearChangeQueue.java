@@ -94,26 +94,26 @@ public final class FixedSizeNonlinearChangeQueue<C, T> extends ChangeQueueBase<C
      *     </li>
      * </ol>
      */
-    public static enum BubbleStrategy {
+    public static enum BubbleForgetStrategy {
         /**
          * Forget the oldest currently-invalid change stored in the queue or default to
-         * {@link #FORGET_OLDEST_CHANGE_THEN_FORGET_GROUNDED} if all are valid.
+         * {@link #OLDEST_CHANGE_THEN_GROUNDED} if all are valid.
          */
-        FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE,
+        OLDEST_INVALID_THEN_OLDEST_CHANGE,
         /**
          * Forget the oldest currently-invalid change stored in the queue or default to
-         * {@link #FORGET_GROUNDED} if all are valid.
+         * {@link #GROUNDED} if all are valid.
          */
-        FORGET_OLDEST_INVALID_THEN_FORGET_GROUNDED,
+        OLDEST_INVALID_THEN_GROUNDED,
         /**
          * Forget the oldest change stored in the queue, whether it's valid or not, or default
-         * to {@link #FORGET_GROUNDED} if there is room for only one change.
+         * to {@link #GROUNDED} if there is room for only one change.
          */
-        FORGET_OLDEST_CHANGE_THEN_FORGET_GROUNDED,
+        OLDEST_CHANGE_THEN_GROUNDED,
         /**
          * Don't store the grounded part of the bubbled change
          */
-        FORGET_GROUNDED
+        GROUNDED
     }
 
     public final SuspendableNo performingActionProperty() { return graph.performingActionProperty(); }
@@ -135,13 +135,13 @@ public final class FixedSizeNonlinearChangeQueue<C, T> extends ChangeQueueBase<C
     private int forgottenRevisionCount = 0;
     private int overflowCount = 0;
 
-    private final BubbleStrategy undoStrategy;
-    private final BubbleStrategy redoStrategy;
+    private final BubbleForgetStrategy undoStrategy;
+    private final BubbleForgetStrategy redoStrategy;
 
     private int getCapacity() { return changes.getCapacity(); }
 
     public FixedSizeNonlinearChangeQueue(int capacity, DirectedAcyclicGraph<C, T> graph,
-                                         BubbleStrategy undoStrategy, BubbleStrategy redoStrategy) {
+                                         BubbleForgetStrategy undoStrategy, BubbleForgetStrategy redoStrategy) {
         super();
         this.changes = FixedSizeOverwritableList.withCapacity(capacity);
         this.graph = graph;
@@ -210,22 +210,22 @@ public final class FixedSizeNonlinearChangeQueue<C, T> extends ChangeQueueBase<C
         } else {
             if (changes.size() == getCapacity()) {
                 switch (redoStrategy) {
-                    case FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE:
+                    case OLDEST_INVALID_THEN_OLDEST_CHANGE:
                         redo_attemptForgetOldestInvalid(
                                 bubbledRedoResult.getGrounded(), bubbledRedoResult.getBubbled(),
                                 this::redo_attemptForgetOldest
                         );
 
-                    case FORGET_OLDEST_INVALID_THEN_FORGET_GROUNDED:
+                    case OLDEST_INVALID_THEN_GROUNDED:
                         redo_attemptForgetOldestInvalid(
                                 bubbledRedoResult.getGrounded(), bubbledRedoResult.getBubbled(),
                                 this::redo_forgetGrounded
                         );
                         break;
-                    case FORGET_OLDEST_CHANGE_THEN_FORGET_GROUNDED:
+                    case OLDEST_CHANGE_THEN_GROUNDED:
                         redo_attemptForgetOldest(bubbledRedoResult.getBubbled());
                         break;
-                    default: case FORGET_GROUNDED:
+                    default: case GROUNDED:
                         redo_forgetGrounded(bubbledRedoResult.getBubbled());
                 }
             } else {
@@ -300,22 +300,22 @@ public final class FixedSizeNonlinearChangeQueue<C, T> extends ChangeQueueBase<C
             BubbledUndoResult<C, T> bubbledUndoResult = graph.bubbleUndo(undo);
             if (changes.size() == getCapacity()) {
                 switch (undoStrategy) {
-                    case FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE:
+                    case OLDEST_INVALID_THEN_OLDEST_CHANGE:
                         undo_attemptForgetOldestInvalid(
                                 bubbledUndoResult.getGrounded(), bubbledUndoResult.getBubbled(),
                                 this::undo_attemptForgetOldest
                         );
 
-                    case FORGET_OLDEST_INVALID_THEN_FORGET_GROUNDED:
+                    case OLDEST_INVALID_THEN_GROUNDED:
                         undo_attemptForgetOldestInvalid(
                                 bubbledUndoResult.getGrounded(), bubbledUndoResult.getBubbled(),
                                 this::undo_forgetGrounded
                         );
                         break;
-                    case FORGET_OLDEST_CHANGE_THEN_FORGET_GROUNDED:
+                    case OLDEST_CHANGE_THEN_GROUNDED:
                         undo_attemptForgetOldest(bubbledUndoResult.getBubbled());
                         break;
-                    default: case FORGET_GROUNDED:
+                    default: case GROUNDED:
                         undo_forgetGrounded(bubbledUndoResult.getBubbled());
                 }
             }

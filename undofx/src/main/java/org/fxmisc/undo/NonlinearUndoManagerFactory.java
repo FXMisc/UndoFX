@@ -2,7 +2,7 @@ package org.fxmisc.undo;
 
 import org.fxmisc.undo.impl.nonlinear.DirectedAcyclicGraph;
 import org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue;
-import org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue.BubbleStrategy;
+import org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue.BubbleForgetStrategy;
 import org.fxmisc.undo.impl.nonlinear.NonlinearChangeQueue;
 import org.fxmisc.undo.impl.nonlinear.NonlinearUndoManager;
 import org.fxmisc.undo.impl.nonlinear.UnlimitedNonlinearChangeQueue;
@@ -16,11 +16,11 @@ import java.util.function.Function;
 
 public interface NonlinearUndoManagerFactory<C, T> {
 
-    public BubbleStrategy getUndoBubbleStrategy();
-    public void setUndoBubbleStrategy(BubbleStrategy strategy);
+    public BubbleForgetStrategy getUndoBubbleStrategy();
+    public void setUndoBubbleStrategy(BubbleForgetStrategy strategy);
 
-    public BubbleStrategy getRedoBubbleStrategy();
-    public void setRedoBubbleStrategy(BubbleStrategy strategy);
+    public BubbleForgetStrategy getRedoBubbleStrategy();
+    public void setRedoBubbleStrategy(BubbleForgetStrategy strategy);
 
     default UndoManager create(int capacity,
                                EventStream<C> changeStream,
@@ -59,33 +59,33 @@ public interface NonlinearUndoManagerFactory<C, T> {
     public UndoManager createZero(EventStream<C> changeStream);
 
     public static <C, T> NonlinearUndoManagerFactory<C, T> factory(DirectedAcyclicGraph<C, T> graph) {
-        return factory(graph, BubbleStrategy.FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE,
-                BubbleStrategy.FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE);
+        return factory(graph, BubbleForgetStrategy.OLDEST_INVALID_THEN_OLDEST_CHANGE,
+                BubbleForgetStrategy.OLDEST_INVALID_THEN_OLDEST_CHANGE);
     }
 
     public static <C, T> NonlinearUndoManagerFactory<C, T> factory(DirectedAcyclicGraph<C, T> graph,
-                BubbleStrategy undo, BubbleStrategy redo) {
+                                                                   BubbleForgetStrategy undo, BubbleForgetStrategy redo) {
         return new NonlinearUndoManagerFactory<C, T>() {
 
-            private BubbleStrategy undoStrategy = undo;
+            private BubbleForgetStrategy undoStrategy = undo;
             @Override
-            public BubbleStrategy getUndoBubbleStrategy() {
+            public BubbleForgetStrategy getUndoBubbleStrategy() {
                 return undoStrategy;
             }
 
             @Override
-            public void setUndoBubbleStrategy(BubbleStrategy strategy) {
+            public void setUndoBubbleStrategy(BubbleForgetStrategy strategy) {
                 undoStrategy = strategy;
             }
 
-            private BubbleStrategy redoStrategy = redo;
+            private BubbleForgetStrategy redoStrategy = redo;
             @Override
-            public BubbleStrategy getRedoBubbleStrategy() {
+            public BubbleForgetStrategy getRedoBubbleStrategy() {
                 return redoStrategy;
             }
 
             @Override
-            public void setRedoBubbleStrategy(BubbleStrategy strategy) {
+            public void setRedoBubbleStrategy(BubbleForgetStrategy strategy) {
                 redoStrategy = strategy;
             }
 

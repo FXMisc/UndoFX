@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue.BubbleStrategy.FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE;
+import static org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue.BubbleForgetStrategy.OLDEST_INVALID_THEN_OLDEST_CHANGE;
 
 @RunWith(NestedRunner.class)
 public class NonlinearUndoManagerTest {
@@ -78,7 +78,7 @@ public class NonlinearUndoManagerTest {
 
             @Before
             public void setup() {
-                queue = new FixedSizeNonlinearChangeQueue<>(10, graph, FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE, FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE);
+                queue = new FixedSizeNonlinearChangeQueue<>(10, graph, OLDEST_INVALID_THEN_OLDEST_CHANGE, OLDEST_INVALID_THEN_OLDEST_CHANGE);
                 graph.addQueue(queue);
                 undoManager = newUndoManager(queue, view);
                 view.setUndoManager(undoManager);

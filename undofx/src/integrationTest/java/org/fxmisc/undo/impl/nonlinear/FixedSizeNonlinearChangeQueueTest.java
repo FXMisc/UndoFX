@@ -7,13 +7,11 @@ import org.fxmisc.richtextfx.TextChange;
 import org.fxmisc.richtextfx.UndoBubbleType;
 import org.fxmisc.undo.UndoManager;
 import org.fxmisc.undo.impl.ChangeQueue;
-import org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue;
-import org.fxmisc.undo.impl.nonlinear.NonlinearUndoManager;
 
 import org.junit.After;
 import org.junit.Test;
 
-import static org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue.BubbleStrategy.FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE;
+import static org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue.BubbleForgetStrategy.OLDEST_INVALID_THEN_OLDEST_CHANGE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -31,7 +29,7 @@ public class FixedSizeNonlinearChangeQueueTest {
         view = new DocumentView(model);
 
         graph = new DocumentDAG(model);
-        queue = new FixedSizeNonlinearChangeQueue<>(capacity, graph, FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE, FORGET_OLDEST_INVALID_THEN_OLDEST_CHANGE);
+        queue = new FixedSizeNonlinearChangeQueue<>(capacity, graph, OLDEST_INVALID_THEN_OLDEST_CHANGE, OLDEST_INVALID_THEN_OLDEST_CHANGE);
         graph.addQueue(queue);
 
         UndoManager um = new NonlinearUndoManager<>(queue, TextChange::invert, view::replace,
