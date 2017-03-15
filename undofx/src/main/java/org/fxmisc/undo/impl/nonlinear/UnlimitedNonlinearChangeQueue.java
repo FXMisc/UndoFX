@@ -41,9 +41,9 @@ public class UnlimitedNonlinearChangeQueue<C, T> extends ChangeQueueBase<C> impl
                 @SuppressWarnings("unchecked")
                 QueuePositionImpl otherPos = (QueuePositionImpl) obj;
                 return getQueue() == otherPos.getQueue()
-                        && (storedChange != null && otherPos.storedChange != null)
-                            ? storedChange.identityEquals(otherPos.storedChange)
-                            : otherPos.storedChange == null && currentForgottenRevision == otherPos.currentForgottenRevision;
+                        && otherPos.storedChange != null
+                            ? storedChange != null && storedChange.identityEquals(otherPos.storedChange)
+                            : currentForgottenRevision == otherPos.currentForgottenRevision;
             } else {
                 return false;
             }
