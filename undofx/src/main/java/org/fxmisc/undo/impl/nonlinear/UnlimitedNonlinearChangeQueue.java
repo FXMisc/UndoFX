@@ -43,7 +43,7 @@ public class UnlimitedNonlinearChangeQueue<C, T> extends ChangeQueueBase<C> impl
                 return getQueue() == otherPos.getQueue()
                         && (storedChange != null && otherPos.storedChange != null)
                             ? storedChange.identityEquals(otherPos.storedChange)
-                            : currentForgottenRevision == otherPos.currentForgottenRevision;
+                            : otherPos.storedChange == null && currentForgottenRevision == otherPos.currentForgottenRevision;
             } else {
                 return false;
             }

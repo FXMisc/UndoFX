@@ -67,8 +67,9 @@ public final class FixedSizeNonlinearChangeQueue<C, T> extends ChangeQueueBase<C
                 return getQueue() == otherPos.getQueue()
                         && currentForgottenRevision == otherPos.currentForgottenRevision
                         && currentOverflowCount == otherPos.currentOverflowCount
-                        && storedChange != null && otherPos.storedChange != null
-                        && storedChange.identityEquals(otherPos.storedChange);
+                        && storedChange != null
+                            ? otherPos.storedChange != null && storedChange.identityEquals(otherPos.storedChange)
+                            : otherPos.storedChange == null;
             } else {
                 return false;
             }
