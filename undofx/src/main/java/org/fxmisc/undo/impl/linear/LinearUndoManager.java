@@ -1,4 +1,4 @@
-package org.fxmisc.undo.impl;
+package org.fxmisc.undo.impl.linear;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -14,7 +14,7 @@ import org.reactfx.EventStream;
 import org.reactfx.Subscription;
 import org.reactfx.SuspendableNo;
 
-public class UndoManagerImpl<C> implements UndoManager {
+public class LinearUndoManager<C> implements UndoManager {
 
     private class UndoPositionImpl implements UndoPosition {
         private final QueuePosition queuePos;
@@ -36,7 +36,7 @@ public class UndoManagerImpl<C> implements UndoManager {
         }
     }
 
-    private final ChangeQueue<C> queue;
+    private final LinearChangeQueue<C> queue;
     private final Function<? super C, ? extends C> invert;
     private final Consumer<C> apply;
     private final BiFunction<C, C, Optional<C>> merge;
@@ -68,8 +68,8 @@ public class UndoManagerImpl<C> implements UndoManager {
     private QueuePosition mark;
     private C expectedChange = null;
 
-    public UndoManagerImpl(
-            ChangeQueue<C> queue,
+    public LinearUndoManager(
+            LinearChangeQueue<C> queue,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
@@ -113,51 +113,6 @@ public class UndoManagerImpl<C> implements UndoManager {
         } else {
             return false;
         }
-    }
-
-    @Override
-    public boolean isUndoAvailable() {
-        return undoAvailable.get();
-    }
-
-    @Override
-    public ObservableBooleanValue undoAvailableProperty() {
-        return undoAvailable;
-    }
-
-    @Override
-    public boolean isRedoAvailable() {
-        return redoAvailable.get();
-    }
-
-    @Override
-    public ObservableBooleanValue redoAvailableProperty() {
-        return redoAvailable;
-    }
-
-    @Override
-    public boolean isPerformingAction() {
-        return performingAction.get();
-    }
-
-    @Override
-    public ObservableBooleanValue performingActionProperty() {
-        return performingAction;
-    }
-
-    @Override
-    public boolean isAtMarkedPosition() {
-        return atMarkedPosition.get();
-    }
-
-    @Override
-    public ObservableBooleanValue atMarkedPositionProperty() {
-        return atMarkedPosition;
-    }
-
-    @Override
-    public UndoPosition getCurrentPosition() {
-        return new UndoPositionImpl(queue.getCurrentPosition());
     }
 
     @Override
@@ -214,5 +169,50 @@ public class UndoManagerImpl<C> implements UndoManager {
         } else {
             return (C[]) new Object[] { c1, c2 };
         }
+    }
+
+    @Override
+    public boolean isUndoAvailable() {
+        return undoAvailable.get();
+    }
+
+    @Override
+    public ObservableBooleanValue undoAvailableProperty() {
+        return undoAvailable;
+    }
+
+    @Override
+    public boolean isRedoAvailable() {
+        return redoAvailable.get();
+    }
+
+    @Override
+    public ObservableBooleanValue redoAvailableProperty() {
+        return redoAvailable;
+    }
+
+    @Override
+    public boolean isPerformingAction() {
+        return performingAction.get();
+    }
+
+    @Override
+    public ObservableBooleanValue performingActionProperty() {
+        return performingAction;
+    }
+
+    @Override
+    public boolean isAtMarkedPosition() {
+        return atMarkedPosition.get();
+    }
+
+    @Override
+    public ObservableBooleanValue atMarkedPositionProperty() {
+        return atMarkedPosition;
+    }
+
+    @Override
+    public UndoPosition getCurrentPosition() {
+        return new UndoPositionImpl(queue.getCurrentPosition());
     }
 }

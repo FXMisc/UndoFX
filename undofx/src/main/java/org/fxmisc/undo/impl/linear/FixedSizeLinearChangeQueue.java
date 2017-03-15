@@ -1,8 +1,11 @@
-package org.fxmisc.undo.impl;
+package org.fxmisc.undo.impl.linear;
+
+import org.fxmisc.undo.impl.ChangeQueueBase;
+import org.reactfx.SuspendableNo;
 
 import java.util.NoSuchElementException;
 
-public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
+public class FixedSizeLinearChangeQueue<C> extends ChangeQueueBase<C> implements LinearChangeQueue<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final int arrayPos;
@@ -27,7 +30,7 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
 
         @Override
         public boolean equals(Object other) {
-            if(other instanceof FixedSizeChangeQueue.QueuePositionImpl) {
+            if(other instanceof FixedSizeLinearChangeQueue.QueuePositionImpl) {
                 @SuppressWarnings("unchecked")
                 QueuePositionImpl otherPos = (QueuePositionImpl) other;
                 return getQueue() == otherPos.getQueue() && rev == otherPos.rev;
@@ -36,10 +39,14 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
             }
         }
 
-        private FixedSizeChangeQueue<C> getQueue() {
-            return FixedSizeChangeQueue.this;
+        private FixedSizeLinearChangeQueue<C> getQueue() {
+            return FixedSizeLinearChangeQueue.this;
         }
     }
+
+    private final SuspendableNo performingAction = new SuspendableNo();
+    @Override public boolean isPerformingAction() { return performingAction.get(); }
+    @Override public SuspendableNo performingActionProperty() { return performingAction; }
 
     private final RevisionedChange<C>[] changes;
     private final int capacity;
@@ -54,13 +61,14 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
     private long zeroPositionRevision = revision;
 
     @SuppressWarnings("unchecked")
-    public FixedSizeChangeQueue(int capacity) {
+    public FixedSizeLinearChangeQueue(int capacity) {
         if(capacity <= 0) {
             throw new IllegalArgumentException("capacity must be positive");
         }
 
         this.capacity = capacity;
         this.changes = new RevisionedChange[capacity];
+        this.mark = getCurrentPosition();
     }
 
     @Override
@@ -76,7 +84,9 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
     @Override
     public C next() {
         if(currentPosition < size) {
-            return fetch(currentPosition++).getChange();
+            int index = currentPosition++;
+            invalidateBindings();
+            return fetch(index).getChange();
         } else {
             throw new NoSuchElementException();
         }
@@ -85,7 +95,9 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
     @Override
     public C prev() {
         if(currentPosition > 0) {
-            return fetch(--currentPosition).getChange();
+            int index = --currentPosition;
+            invalidateBindings();
+            return fetch(index).getChange();
         } else {
             throw new NoSuchElementException();
         }
@@ -97,6 +109,7 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
         start = arrayIndex(currentPosition);
         size -= currentPosition;
         currentPosition = 0;
+        undoAvailable.invalidate();
     }
 
     @Override
@@ -116,6 +129,7 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
         } else {
             size = currentPosition;
         }
+        invalidateBindings();
     }
 
     @Override

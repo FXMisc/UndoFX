@@ -1,8 +1,11 @@
-package org.fxmisc.undo.impl;
+package org.fxmisc.undo.impl.linear;
+
+import org.fxmisc.undo.impl.ChangeQueueBase;
+import org.reactfx.SuspendableNo;
 
 import java.util.ArrayList;
 
-public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
+public class UnlimitedLinearChangeQueue<C> extends ChangeQueueBase<C> implements LinearChangeQueue<C> {
 
     private class QueuePositionImpl implements QueuePosition {
         private final int allTimePos;
@@ -25,7 +28,7 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
 
         @Override
         public boolean equals(Object other) {
-            if(other instanceof UnlimitedChangeQueue.QueuePositionImpl) {
+            if(other instanceof UnlimitedLinearChangeQueue.QueuePositionImpl) {
                 @SuppressWarnings("unchecked")
                 QueuePositionImpl otherPos = (QueuePositionImpl) other;
                 return getQueue() == otherPos.getQueue() && rev == otherPos.rev;
@@ -34,10 +37,14 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
             }
         }
 
-        private UnlimitedChangeQueue<C> getQueue() {
-            return UnlimitedChangeQueue.this;
+        private UnlimitedLinearChangeQueue<C> getQueue() {
+            return UnlimitedLinearChangeQueue.this;
         }
     }
+
+    private final SuspendableNo performingAction = new SuspendableNo();
+    @Override public boolean isPerformingAction() { return performingAction.get(); }
+    @Override public SuspendableNo performingActionProperty() { return performingAction; }
 
     private final ArrayList<RevisionedChange<C>> changes = new ArrayList<>();
     private int currentPosition = 0;
@@ -45,6 +52,10 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
     private long revision = 0;
     private long zeroPositionRevision = revision;
     private int forgottenCount = 0;
+
+    public UnlimitedLinearChangeQueue() {
+        this.mark = getCurrentPosition();
+    }
 
     @Override
     public final boolean hasNext() {
@@ -58,12 +69,16 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
 
     @Override
     public final C next() {
-        return changes.get(currentPosition++).getChange();
+        int index = currentPosition++;
+        invalidateBindings();
+        return changes.get(index).getChange();
     }
 
     @Override
     public final C prev() {
-        return changes.get(--currentPosition).getChange();
+        int index = --currentPosition;
+        invalidateBindings();
+        return changes.get(index).getChange();
     }
 
     @Override
@@ -77,6 +92,7 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
             changes.subList(newSize, changes.size()).clear();
             forgottenCount += currentPosition;
             currentPosition = 0;
+            undoAvailable.invalidate();
         }
     }
 
@@ -89,6 +105,7 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
             this.changes.add(revC);
         }
         currentPosition += changes.length;
+        invalidateBindings();
     }
 
     @Override
