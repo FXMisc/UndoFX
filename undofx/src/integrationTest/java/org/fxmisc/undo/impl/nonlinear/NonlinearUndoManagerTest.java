@@ -447,14 +447,13 @@ public class NonlinearUndoManagerTest {
             um.undo();
             assertFalse(um.isUndoAvailable());
             assertTrue(um.isRedoAvailable());
-            // TODO: By the looks of it, fails since tc1 does not get bumped by 1 [ tc2.getDifference() ]
             assertEquals("", model.getText());
 
             String text6 = "fff";
             push(insertion(text6));
             assertTrue(um.isUndoAvailable());
             assertFalse(um.isRedoAvailable());
-            assertEquals(text6 + text1, model.getText());
+            assertEquals(text6, model.getText());
         }
 
     }
