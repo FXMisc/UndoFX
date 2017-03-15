@@ -13,6 +13,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue.BubbleForgetStrategy.OLDEST_INVALID_THEN_OLDEST_CHANGE;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(NestedRunner.class)
 public class NonlinearUndoManagerTest {
@@ -34,7 +36,7 @@ public class NonlinearUndoManagerTest {
     public class LinearTests {
 
         private DocumentView view;
-        private UndoManager undoManager;
+        private UndoManager um;
 
         @Before
         public void setup() {
@@ -43,12 +45,24 @@ public class NonlinearUndoManagerTest {
 
         @After
         public void cleanup() {
-            undoManager.close();
+            um.close();
         }
 
         private UndoManager newUndoManager(NonlinearChangeQueue<TextChange> queue, DocumentView view) {
             return new NonlinearUndoManager<>(queue, TextChange::invert, view::replace,
                     TextChange::mergeWith, view.changesDoneByThisViewEvents());
+        }
+
+        public TextChange insertion() {
+            return new TextChange(0, "", "a");
+        }
+
+        public TextChange insertion(String insertedText) {
+            return new TextChange(0, "", insertedText);
+        }
+
+        public void push(TextChange change) {
+            view.replace(change);
         }
 
         /** Tests nonlinear undo/redo using only one zero-sized queue */
@@ -60,13 +74,29 @@ public class NonlinearUndoManagerTest {
             public void setup() {
                 queue = new ZeroSizeNonlinearChangeQueue<>(graph);
                 graph.addQueue(queue);
-                undoManager = newUndoManager(queue, view);
-                view.setUndoManager(undoManager);
+                um = newUndoManager(queue, view);
+                view.setUndoManager(um);
             }
 
             @Test
             public void test() {
 
+            }
+
+            @Test
+            public void testMark() {
+                assertTrue(um.atMarkedPositionProperty().get());
+
+                push(insertion());
+                assertFalse(um.atMarkedPositionProperty().get());
+
+                push(insertion());
+                um.mark();
+                assertTrue(um.atMarkedPositionProperty().get());
+
+                push(insertion());
+                push(insertion());
+                assertFalse(um.atMarkedPositionProperty().get());
             }
 
         }
@@ -78,15 +108,41 @@ public class NonlinearUndoManagerTest {
 
             @Before
             public void setup() {
-                queue = new FixedSizeNonlinearChangeQueue<>(10, graph, OLDEST_INVALID_THEN_OLDEST_CHANGE, OLDEST_INVALID_THEN_OLDEST_CHANGE);
+                queue = new FixedSizeNonlinearChangeQueue<>(4, graph, OLDEST_INVALID_THEN_OLDEST_CHANGE, OLDEST_INVALID_THEN_OLDEST_CHANGE);
                 graph.addQueue(queue);
-                undoManager = newUndoManager(queue, view);
-                view.setUndoManager(undoManager);
+                um = newUndoManager(queue, view);
+                view.setUndoManager(um);
             }
 
             @Test
             public void test() {
 
+            }
+
+            @Test
+            public void testMark() {
+                assertTrue(um.atMarkedPositionProperty().get());
+
+                push(insertion());
+                assertFalse(um.atMarkedPositionProperty().get());
+
+                push(insertion());
+                um.mark();
+                assertTrue(um.atMarkedPositionProperty().get());
+
+                push(insertion());
+                push(insertion());
+                assertFalse(um.atMarkedPositionProperty().get());
+
+                um.undo();
+                um.undo();
+                assertTrue(um.atMarkedPositionProperty().get());
+
+                push(insertion());
+                push(insertion());
+                push(insertion()); // overflow
+                push(insertion());
+                assertFalse(um.atMarkedPositionProperty().get());
             }
 
         }
@@ -100,14 +156,37 @@ public class NonlinearUndoManagerTest {
             public void setup() {
                 queue = new UnlimitedNonlinearChangeQueue<>(graph);
                 graph.addQueue(queue);
-                undoManager = newUndoManager(queue, view);
-                view.setUndoManager(undoManager);
+                um = newUndoManager(queue, view);
+                view.setUndoManager(um);
             }
 
             @Test
-            public void test() {
+            public void testMark() {
+                assertTrue(um.atMarkedPositionProperty().get());
 
+                push(insertion());
+                assertFalse(um.atMarkedPositionProperty().get());
+
+                push(insertion());
+                um.mark();
+                assertTrue(um.atMarkedPositionProperty().get());
+
+                push(insertion());
+                push(insertion());
+                assertFalse(um.atMarkedPositionProperty().get());
+
+                um.undo();
+                um.undo();
+                assertTrue(um.atMarkedPositionProperty().get());
+
+                push(insertion());
+                push(insertion());
+                push(insertion());
+                push(insertion());
+                assertFalse(um.atMarkedPositionProperty().get());
             }
+
+
 
         }
 
