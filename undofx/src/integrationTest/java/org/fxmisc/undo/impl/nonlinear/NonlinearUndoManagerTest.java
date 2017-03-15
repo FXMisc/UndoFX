@@ -56,6 +56,15 @@ public class NonlinearUndoManagerTest {
             view = new DocumentView(model);
         }
 
+        private UndoManager newUndoManager(NonlinearChangeQueue<TextChange> queue, DocumentView view) {
+            return new NonlinearUndoManager<>(queue, TextChange::invert, view::replace,
+                    TextChange::mergeWith, view.changesDoneByThisViewEvents());
+        }
+
+        private void push(TextChange change) {
+            view.replace(change);
+        }
+
         @Test
         public void testUndoInvertsTheChange() {
             NonlinearChangeQueue<TextChange> queue = new ZeroSizeNonlinearChangeQueue<>(graph);
@@ -85,6 +94,88 @@ public class NonlinearUndoManagerTest {
 
             um.redo();
             assertEquals(second, lastAction.getValue());
+        }
+
+        @Test
+        public void testMarkWithZeroSizeQueue() {
+            NonlinearChangeQueue<TextChange> queue = new ZeroSizeNonlinearChangeQueue<>(graph);
+            graph.addQueue(queue);
+            um = newUndoManager(queue, view);
+            view.setUndoManager(um);
+            assertTrue(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            assertFalse(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            um.mark();
+            assertTrue(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            push(insertion());
+            assertFalse(um.atMarkedPositionProperty().get());
+        }
+
+        @Test
+        public void testMarkWithFixedSizeQueue() {
+            NonlinearChangeQueue<TextChange> queue = new FixedSizeNonlinearChangeQueue<>(4, graph,
+                    OLDEST_INVALID_THEN_OLDEST_CHANGE, OLDEST_INVALID_THEN_OLDEST_CHANGE);
+            graph.addQueue(queue);
+            um = newUndoManager(queue, view);
+            view.setUndoManager(um);
+            assertTrue(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            assertFalse(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            um.mark();
+            assertTrue(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            push(insertion());
+            assertFalse(um.atMarkedPositionProperty().get());
+
+            um.undo();
+            um.undo();
+            assertTrue(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            push(insertion());
+            push(insertion()); // overflow
+            push(insertion());
+            assertFalse(um.atMarkedPositionProperty().get());
+        }
+
+        @Test
+        public void testMarkWithUnlimitedQueue() {
+            NonlinearChangeQueue<TextChange> queue = new UnlimitedNonlinearChangeQueue<>(graph);
+            graph.addQueue(queue);
+            um = newUndoManager(queue, view);
+            view.setUndoManager(um);
+
+            assertTrue(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            assertFalse(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            um.mark();
+            assertTrue(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            push(insertion());
+            assertFalse(um.atMarkedPositionProperty().get());
+
+            um.undo();
+            um.undo();
+            assertTrue(um.atMarkedPositionProperty().get());
+
+            push(insertion());
+            push(insertion());
+            push(insertion());
+            push(insertion());
+            assertFalse(um.atMarkedPositionProperty().get());
         }
 
         /**
@@ -147,132 +238,25 @@ public class NonlinearUndoManagerTest {
                     TextChange::mergeWith, view.changesDoneByThisViewEvents());
         }
 
-        public void push(TextChange change) {
+        private void push(TextChange change) {
             view.replace(change);
         }
 
         /** Tests nonlinear undo/redo using only one zero-sized queue */
-        public class SingleZeroSizeQueue {
-
-            private ZeroSizeNonlinearChangeQueue<TextChange, UndoBubbleType> queue;
-
-            @Before
-            public void setup() {
-                queue = new ZeroSizeNonlinearChangeQueue<>(graph);
-                graph.addQueue(queue);
-                um = newUndoManager(queue, view);
-                view.setUndoManager(um);
-            }
-
-            @Test
-            public void test() {
-
-            }
-
-            @Test
-            public void testMark() {
-                assertTrue(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                assertFalse(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                um.mark();
-                assertTrue(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                push(insertion());
-                assertFalse(um.atMarkedPositionProperty().get());
-            }
+        @Test
+        public void testManagerWithZeroSizeQueue() {
 
         }
 
         /** Tests nonlinear undo/redo using only one zero-sized queue */
-        public class SingleFixedSizeQueue {
-
-            private FixedSizeNonlinearChangeQueue<TextChange, UndoBubbleType> queue;
-
-            @Before
-            public void setup() {
-                queue = new FixedSizeNonlinearChangeQueue<>(4, graph, OLDEST_INVALID_THEN_OLDEST_CHANGE, OLDEST_INVALID_THEN_OLDEST_CHANGE);
-                graph.addQueue(queue);
-                um = newUndoManager(queue, view);
-                view.setUndoManager(um);
-            }
-
-            @Test
-            public void test() {
-
-            }
-
-            @Test
-            public void testMark() {
-                assertTrue(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                assertFalse(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                um.mark();
-                assertTrue(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                push(insertion());
-                assertFalse(um.atMarkedPositionProperty().get());
-
-                um.undo();
-                um.undo();
-                assertTrue(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                push(insertion());
-                push(insertion()); // overflow
-                push(insertion());
-                assertFalse(um.atMarkedPositionProperty().get());
-            }
+        @Test
+        public void testManagerWithFixedSizeQueue() {
 
         }
 
         /** Tests nonlinear undo/redo using only one zero-sized queue */
-        public class SingleUnlimitedSizeQueue {
-
-            private UnlimitedNonlinearChangeQueue<TextChange, UndoBubbleType> queue;
-
-            @Before
-            public void setup() {
-                queue = new UnlimitedNonlinearChangeQueue<>(graph);
-                graph.addQueue(queue);
-                um = newUndoManager(queue, view);
-                view.setUndoManager(um);
-            }
-
-            @Test
-            public void testMark() {
-                assertTrue(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                assertFalse(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                um.mark();
-                assertTrue(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                push(insertion());
-                assertFalse(um.atMarkedPositionProperty().get());
-
-                um.undo();
-                um.undo();
-                assertTrue(um.atMarkedPositionProperty().get());
-
-                push(insertion());
-                push(insertion());
-                push(insertion());
-                push(insertion());
-                assertFalse(um.atMarkedPositionProperty().get());
-            }
-
-
+        @Test
+        public void testManagerWithUnlimitedQueue() {
 
         }
 
