@@ -361,11 +361,15 @@ public class NonlinearUndoManagerTest {
             assertFalse(um.isRedoAvailable());
             assertEquals(text5 + text4 + text3 + text2 + text1, model.getText());
 
-            um.undo();
-            um.undo();
-            um.undo();
-            um.undo();
+            um.undo();  // undo tc5
+            um.undo();  // undo tc4
 
+            um.undo();  // undo tc3
+            assertTrue(um.isUndoAvailable());
+            assertTrue(um.isRedoAvailable());
+            assertEquals(text2 + text1, model.getText());
+
+            um.undo();  // undo tc2
             assertFalse(um.isUndoAvailable());
             assertTrue(um.isRedoAvailable());
             assertEquals(text1, model.getText());
