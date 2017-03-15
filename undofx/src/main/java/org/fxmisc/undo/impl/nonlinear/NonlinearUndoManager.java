@@ -100,6 +100,10 @@ public class NonlinearUndoManager<C> implements UndoManager {
             apply.accept(change);
             r.run();
         });
+        if(this.expectedChange != null) {
+            throw new IllegalStateException("Expected change not received:\n"
+                    + this.expectedChange);
+        }
     }
 
     private void changeObserved(C change) {
