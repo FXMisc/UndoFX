@@ -222,14 +222,27 @@ public class NonlinearUndoManagerTest {
         private DocumentView view;
         private UndoManager um;
 
-        @Before
-        public void setup() {
+        public void setup(int capacity) {
             view = new DocumentView(model);
+            NonlinearChangeQueue<TextChange> queue;
+            if (capacity < 0 ) {
+                queue = new UnlimitedNonlinearChangeQueue<>(graph);
+                graph.addQueue(queue);
+            } else if (capacity == 0) {
+                queue = new ZeroSizeNonlinearChangeQueue<>(graph);
+                // no need to add queue to graph
+            } else {
+                queue = new FixedSizeNonlinearChangeQueue<>(4, graph,
+                        OLDEST_INVALID_THEN_OLDEST_CHANGE, OLDEST_INVALID_THEN_OLDEST_CHANGE);
+                graph.addQueue(queue);
+            }
+            um = newUndoManager(queue, view);
+            view.setUndoManager(um);
         }
 
         @After
         public void cleanup() {
-//            um.close();
+            um.close();
         }
 
         private UndoManager newUndoManager(NonlinearChangeQueue<TextChange> queue, DocumentView view) {
@@ -244,19 +257,204 @@ public class NonlinearUndoManagerTest {
         /** Tests nonlinear undo/redo using only one zero-sized queue */
         @Test
         public void testManagerWithZeroSizeQueue() {
+            setup(0);
 
+            assertFalse(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+
+            String text1 = "aaa";
+            String text2 = "b";
+
+            TextChange tc1 = insertion(text1);
+            TextChange tc2 = insertion(text2);
+
+            push(tc1);
+            assertFalse(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            // undo does nothing
+            um.undo();
+            assertFalse(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            // redo does nothing
+            um.redo();
+            assertFalse(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            push(tc2);
+            assertFalse(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text2 + text1, model.getText());
+
+            // undo does nothing
+            um.undo();
+            assertFalse(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text2 + text1, model.getText());
+
+            // redo does nothing
+            um.redo();
+            assertFalse(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text2 + text1, model.getText());
         }
 
         /** Tests nonlinear undo/redo using only one zero-sized queue */
         @Test
         public void testManagerWithFixedSizeQueue() {
+            setup(4);
 
+            assertFalse(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+
+            String text1 = "aaa";
+            String text2 = "b";
+            String text3 = "ccc";
+            String text4 = "ddddddd";
+            String text5 = "eeeeeeeeeeeee";
+
+            TextChange tc1 = insertion(text1);
+            TextChange tc2 = insertion(text2);
+            TextChange tc3 = insertion(text3);
+            TextChange tc4 = insertion(text4);
+            TextChange tc5 = insertion(text5);
+
+            push(tc1);
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            um.undo();
+            assertFalse(um.isUndoAvailable());
+            assertTrue(um.isRedoAvailable());
+            assertEquals("", model.getText());
+
+            um.redo();
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            push(tc2);
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text2 + text1, model.getText());
+
+            um.undo();
+            assertTrue(um.isUndoAvailable());
+            assertTrue(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            um.redo();
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text2 + text1, model.getText());
+
+            push(tc3);
+            push(tc4);
+            push(tc5); // overflow: tc1 not in change queue
+
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text5 + text4 + text3 + text2 + text1, model.getText());
+
+            um.undo();
+            um.undo();
+            um.undo();
+            um.undo();
+
+            assertFalse(um.isUndoAvailable());
+            assertTrue(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            String text6 = "fff";
+            push(insertion(text6));
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text6 + text1, model.getText());
         }
 
         /** Tests nonlinear undo/redo using only one zero-sized queue */
         @Test
         public void testManagerWithUnlimitedQueue() {
+            setup(-1);
 
+            assertFalse(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+
+            String text1 = "aaa";
+            String text2 = "b";
+            String text3 = "ccc";
+            String text4 = "ddddddd";
+            String text5 = "eeeeeeeeeeeee";
+
+            TextChange tc1 = insertion(text1);
+            TextChange tc2 = insertion(text2);
+            TextChange tc3 = insertion(text3);
+            TextChange tc4 = insertion(text4);
+            TextChange tc5 = insertion(text5);
+
+            push(tc1);
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            um.undo();
+            assertFalse(um.isUndoAvailable());
+            assertTrue(um.isRedoAvailable());
+            assertEquals("", model.getText());
+
+            um.redo();
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            push(tc2);
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text2 + text1, model.getText());
+
+            um.undo();
+            assertTrue(um.isUndoAvailable());
+            assertTrue(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            um.redo();
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text2 + text1, model.getText());
+
+            push(tc3);
+            push(tc4);
+            push(tc5);
+
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text5 + text4 + text3 + text2 + text1, model.getText());
+
+            um.undo();
+            um.undo();
+            um.undo();
+            um.undo();
+
+            assertTrue(um.isUndoAvailable());
+            assertTrue(um.isRedoAvailable());
+            assertEquals(text1, model.getText());
+
+            um.undo();
+            assertFalse(um.isUndoAvailable());
+            assertTrue(um.isRedoAvailable());
+            // TODO: By the looks of it, fails since tc1 does not get bumped by 1 [ tc2.getDifference() ]
+            assertEquals("", model.getText());
+
+            String text6 = "fff";
+            push(insertion(text6));
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text6 + text1, model.getText());
         }
 
     }
