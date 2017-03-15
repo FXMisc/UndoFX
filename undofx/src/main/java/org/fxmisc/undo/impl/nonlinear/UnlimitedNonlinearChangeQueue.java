@@ -280,10 +280,11 @@ public class UnlimitedNonlinearChangeQueue<C, T> extends ChangeQueueBase<C> impl
 
     public final void updateChangesWithRedo(C redoneChange) {
         // [0,    1,    2,    3,                       4]
-        // [undo, undo, undo, undo that is now a redo, currentPosition (since it was already incremented) in next()]
-        // undos == changes.subList(0, currentPosition - 2)
-        if (0 <= currentPosition - 2) {
-            replaceChanges(changes.subList(0, currentPosition - 2), outdatedUndo -> updateUndoWithPushedChange(outdatedUndo, redoneChange));
+        //                    currentPosition
+        // [undo, undo, undo, undo that is now a redo
+        // undos == changes.subList(0, currentPosition - 1)
+        if (0 <= currentPosition - 1) {
+            replaceChanges(changes.subList(0, currentPosition - 1), outdatedUndo -> updateUndoWithPushedChange(outdatedUndo, redoneChange));
         }
 
         updateRedosWithAddedChange(redoneChange);
