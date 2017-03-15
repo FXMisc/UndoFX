@@ -11,8 +11,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.reactfx.value.Var;
 
+import java.util.concurrent.CountDownLatch;
+
+import static junit.framework.TestCase.assertNull;
 import static org.fxmisc.undo.impl.nonlinear.FixedSizeNonlinearChangeQueue.BubbleForgetStrategy.OLDEST_INVALID_THEN_OLDEST_CHANGE;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -33,6 +38,95 @@ public class NonlinearUndoManagerTest {
         graph.close();
     }
 
+    public TextChange insertion() {
+        return new TextChange(0, "", "a");
+    }
+
+    public TextChange insertion(String insertedText) {
+        return new TextChange(0, "", insertedText);
+    }
+
+    public class ManagerTests {
+
+        private DocumentView view;
+        private UndoManager um;
+
+        @Before
+        public void setup() {
+            view = new DocumentView(model);
+        }
+
+        @Test
+        public void testUndoInvertsTheChange() {
+            NonlinearChangeQueue<TextChange> queue = new ZeroSizeNonlinearChangeQueue<>(graph);
+            graph.addQueue(queue);
+            Var<TextChange> lastAction = Var.newSimpleVar(null);
+            um = new NonlinearUndoManager<>(queue, TextChange::invert,
+                    c -> { lastAction.setValue(c); view.replace(c); },
+                    TextChange::mergeWith, view.changesDoneByThisViewEvents());
+            view.setUndoManager(um);
+
+            TextChange first = insertion("aaa");
+            TextChange second = insertion("bbb");
+
+            view.replace(first);
+            view.replace(second);
+            assertNull(lastAction.getValue());
+
+            um.undo();
+            // TODO: Figure out why this doesn't work
+            assertEquals(second.invert(), lastAction.getValue());
+
+            um.undo();
+            assertEquals(first.invert(), lastAction.getValue());
+
+            um.redo();
+            assertEquals(first, lastAction.getValue());
+
+            um.redo();
+            assertEquals(second, lastAction.getValue());
+        }
+
+        /**
+         * Tests that isAtMarkedPosition() forces atMarkedPositionProperty()
+         * become valid.
+         */
+        @Test
+        public void testAtMarkedPositionRevalidation() {
+            NonlinearChangeQueue<TextChange> queue = new ZeroSizeNonlinearChangeQueue<>(graph);
+            graph.addQueue(queue);
+            um = new NonlinearUndoManager<>(queue, TextChange::invert, view::replace,
+                    TextChange::mergeWith, view.changesDoneByThisViewEvents());
+            view.setUndoManager(um);
+
+            um.atMarkedPositionProperty().get(); // atMarkedPositionProperty is now valid
+
+            // we are going to expect two invalidations
+            CountDownLatch latch = new CountDownLatch(2);
+            um.atMarkedPositionProperty().addListener(observable -> latch.countDown());
+
+            view.replace(insertion()); // atMarkedPositionProperty has been invalidated
+            assertEquals(1, latch.getCount());
+
+            um.isAtMarkedPosition(); // we want to test whether this caused revalidation of atMarkedPositionProperty
+
+            view.replace(insertion()); // should have caused invalidation of atMarkedPositionProperty
+            assertEquals(0, latch.getCount());
+        }
+
+        @Test(expected = IllegalStateException.class)
+        public void testFailFastWhenExpectedChangeNotReceived() {
+            NonlinearChangeQueue<TextChange> queue = new UnlimitedNonlinearChangeQueue<>(graph);
+            graph.addQueue(queue);
+            um = new NonlinearUndoManager<>(queue, TextChange::invert, c -> {},
+                    TextChange::mergeWith, view.changesDoneByThisViewEvents());
+            view.setUndoManager(um);
+            view.replace(insertion());
+
+            um.undo(); // should throw because the undone change is not received back
+        }
+    }
+
     public class LinearTests {
 
         private DocumentView view;
@@ -51,14 +145,6 @@ public class NonlinearUndoManagerTest {
         private UndoManager newUndoManager(NonlinearChangeQueue<TextChange> queue, DocumentView view) {
             return new NonlinearUndoManager<>(queue, TextChange::invert, view::replace,
                     TextChange::mergeWith, view.changesDoneByThisViewEvents());
-        }
-
-        public TextChange insertion() {
-            return new TextChange(0, "", "a");
-        }
-
-        public TextChange insertion(String insertedText) {
-            return new TextChange(0, "", insertedText);
         }
 
         public void push(TextChange change) {
