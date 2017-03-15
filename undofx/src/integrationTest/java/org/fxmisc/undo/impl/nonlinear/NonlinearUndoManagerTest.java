@@ -374,6 +374,24 @@ public class NonlinearUndoManagerTest {
             assertTrue(um.isRedoAvailable());
             assertEquals(text1, model.getText());
 
+            um.redo(); // redo tc2
+            um.redo(); // redo tc3
+            um.redo(); // redo tc4
+            assertTrue(um.isUndoAvailable());
+            assertTrue(um.isRedoAvailable());
+            // TODO: Fails here as text is reversed
+            assertEquals(text4 + text3 + text2 + text1, model.getText());
+
+            um.redo(); // redo tc5
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text5 + text4 + text3 + text2 + text1, model.getText());
+
+            um.undo();
+            um.undo();
+            um.undo();
+            um.undo();
+
             String text6 = "fff";
             push(insertion(text6));
             assertTrue(um.isUndoAvailable());
@@ -452,6 +470,26 @@ public class NonlinearUndoManagerTest {
             assertFalse(um.isUndoAvailable());
             assertTrue(um.isRedoAvailable());
             assertEquals("", model.getText());
+
+            um.redo(); // redo tc1
+            um.redo(); // redo tc2
+            um.redo(); // redo tc3
+            um.redo(); // redo tc4
+            assertTrue(um.isUndoAvailable());
+            assertTrue(um.isRedoAvailable());
+            // TODO: Fails here as text is reversed
+            assertEquals(text4 + text3 + text2 + text1, model.getText());
+
+            um.redo(); // redo tc5
+            assertTrue(um.isUndoAvailable());
+            assertFalse(um.isRedoAvailable());
+            assertEquals(text5 + text4 + text3 + text2 + text1, model.getText());
+
+            um.undo();
+            um.undo();
+            um.undo();
+            um.undo();
+            um.undo();
 
             String text6 = "fff";
             push(insertion(text6));
