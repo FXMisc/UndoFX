@@ -67,7 +67,7 @@ public class NonlinearUndoManagerTest {
 
         @Test
         public void testUndoInvertsTheChange() {
-            NonlinearChangeQueue<TextChange> queue = new ZeroSizeNonlinearChangeQueue<>(graph);
+            NonlinearChangeQueue<TextChange> queue = new UnlimitedNonlinearChangeQueue<>(graph);
             graph.addQueue(queue);
             Var<TextChange> lastAction = Var.newSimpleVar(null);
             um = new NonlinearUndoManager<>(queue, TextChange::invert,
@@ -83,7 +83,6 @@ public class NonlinearUndoManagerTest {
             assertNull(lastAction.getValue());
 
             um.undo();
-            // TODO: Figure out why this doesn't work
             assertEquals(second.invert(), lastAction.getValue());
 
             um.undo();
@@ -93,7 +92,7 @@ public class NonlinearUndoManagerTest {
             assertEquals(first, lastAction.getValue());
 
             um.redo();
-            assertEquals(second, lastAction.getValue());
+            assertEquals(second.bumpPosition(first.getDifference()), lastAction.getValue());
         }
 
         @Test
@@ -230,7 +229,7 @@ public class NonlinearUndoManagerTest {
 
         @After
         public void cleanup() {
-            um.close();
+//            um.close();
         }
 
         private UndoManager newUndoManager(NonlinearChangeQueue<TextChange> queue, DocumentView view) {
