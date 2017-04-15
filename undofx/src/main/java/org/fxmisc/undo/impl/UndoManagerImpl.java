@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
@@ -40,6 +41,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     private final Function<? super C, ? extends C> invert;
     private final Consumer<C> apply;
     private final BiFunction<C, C, Optional<C>> merge;
+    private final Predicate<C> isIdentity;
     private final Subscription subscription;
     private final SuspendableNo performingAction = new SuspendableNo();
 
@@ -68,16 +70,32 @@ public class UndoManagerImpl<C> implements UndoManager {
     private QueuePosition mark;
     private C expectedChange = null;
 
+    /**
+     * Creates an {@link UndoManager}.
+     *
+     * @param queue the queue that stores the changes to undo/redo
+     * @param invert inverts the change
+     * @param apply applies the change (undo/redo)
+     * @param merge merges two changes into one change. If the resulting change is an identity change, the two
+     *              changes will not be merged.
+     * @param isIdentity determines whether change is an identity change (e.g. {@link Function#identity()}). For
+     *                   example, {@code 0} is the identity change in
+     *                   {@code BiFunction<Integer, Integer, Integer> plus = (i, j) -> i + j} because
+     *                   {@code 4 == 4 + 0 == plus.apply(4, 0)}
+     * @param changeSource the {@link EventStream} that emits changes
+     */
     public UndoManagerImpl(
             ChangeQueue<C> queue,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
+            Predicate<C> isIdentity,
             EventStream<C> changeSource) {
         this.queue = queue;
         this.invert = invert;
         this.apply = apply;
         this.merge = merge;
+        this.isIdentity = isIdentity;
         this.mark = queue.getCurrentPosition();
         this.subscription = changeSource.subscribe(this::changeObserved);
     }
@@ -182,7 +200,9 @@ public class UndoManagerImpl<C> implements UndoManager {
 
     private void changeObserved(C change) {
         if(expectedChange == null) {
-            addChange(change);
+            if (!isIdentity.test(change)) {
+                addChange(change);
+            }
         } else if(expectedChange.equals(change)) {
             expectedChange = null;
         } else {
@@ -196,23 +216,30 @@ public class UndoManagerImpl<C> implements UndoManager {
     private void addChange(C change) {
         if(canMerge && queue.hasPrev()) {
             C prev = queue.prev();
-            queue.push(merge(prev, change));
+
+            // attempt to merge the changes
+            Object[] changeArray;
+            Optional<C> merged = merge.apply(prev, change);
+            if(merged.isPresent()) {
+                if (isIdentity.test(merged.get())) {
+                    canMerge = false;
+                    changeArray = new Object[0];
+                } else {
+                    canMerge = true;
+                    changeArray = new Object[] { merged.get() };
+                }
+            } else {
+                canMerge = true;
+                changeArray = new Object[] { prev, change };
+            }
+
+            queue.push((C[]) changeArray);
         } else {
             queue.push(change);
+            canMerge = true;
         }
-        canMerge = true;
         undoAvailable.invalidate();
         redoAvailable.invalidate();
         atMarkedPosition.invalidate();
-    }
-
-    @SuppressWarnings("unchecked")
-    private C[] merge(C c1, C c2) {
-        Optional<C> merged = merge.apply(c1, c2);
-        if(merged.isPresent()) {
-            return (C[]) new Object[] { merged.get() };
-        } else {
-            return (C[]) new Object[] { c1, c2 };
-        }
     }
 }
