@@ -70,20 +70,6 @@ public class UndoManagerImpl<C> implements UndoManager {
     private QueuePosition mark;
     private C expectedChange = null;
 
-    /**
-     * Creates an {@link UndoManager}.
-     *
-     * @param queue the queue that stores the changes to undo/redo
-     * @param invert inverts the change
-     * @param apply applies the change (undo/redo)
-     * @param merge merges two changes into one change. If the resulting change is an identity change, the two
-     *              changes will not be merged.
-     * @param isIdentity determines whether change is an identity change (e.g. {@link Function#identity()}). For
-     *                   example, {@code 0} is the identity change in
-     *                   {@code BiFunction<Integer, Integer, Integer> plus = (i, j) -> i + j} because
-     *                   {@code 4 == 4 + 0 == plus.apply(4, 0)}
-     * @param changeSource the {@link EventStream} that emits changes
-     */
     public UndoManagerImpl(
             ChangeQueue<C> queue,
             Function<? super C, ? extends C> invert,
@@ -218,22 +204,18 @@ public class UndoManagerImpl<C> implements UndoManager {
             C prev = queue.prev();
 
             // attempt to merge the changes
-            Object[] changeArray;
             Optional<C> merged = merge.apply(prev, change);
             if(merged.isPresent()) {
                 if (isIdentity.test(merged.get())) {
                     canMerge = false;
-                    changeArray = new Object[0];
                 } else {
                     canMerge = true;
-                    changeArray = new Object[] { merged.get() };
+                    queue.push(merged.get());
                 }
             } else {
                 canMerge = true;
-                changeArray = new Object[] { prev, change };
+                queue.push(prev, change);
             }
-
-            queue.push((C[]) changeArray);
         } else {
             queue.push(change);
             canMerge = true;

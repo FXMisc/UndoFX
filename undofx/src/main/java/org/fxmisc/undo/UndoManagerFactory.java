@@ -16,10 +16,15 @@ import org.reactfx.EventStream;
 public interface UndoManagerFactory {
 
     /**
-     * Creates an {@link UndoManager} where changes will never be merged and every change emitted from the
-     * changeStream is considered to be a non-identity change.
+     * Creates an {@link UndoManager} that tracks changes emitted from {@code changeStream}.
      *
-     * @param <C> the type of change object to use
+     * @param <C> representation of a change
+     * @param invert Inverts a change, so that applying the inverted change ({@code apply.accept(invert.apply(c))})
+     *               has the effect of undoing the original change ({@code c}). Inverting a change twice should
+     *               result in the original change ({@code invert.apply(invert.apply(c)).equals(c)}).
+     * @param apply Used to apply a change. From the point of view of {@code apply}, {@code C}
+     *              describes an action to be performed. Calling {@code apply.accept(c)}
+     *              <em>must</em> cause {@code c} to be emitted from {@code changeStream}.
      */
     default <C> UndoManager create(
             EventStream<C> changeStream,
@@ -29,10 +34,17 @@ public interface UndoManagerFactory {
     }
 
     /**
-     * Creates an {@link UndoManager} where every change emitted from the changeStream is considered to be a
-     * non-identity change
+     * Creates an {@link UndoManager} that tracks and optionally merges changes emitted from {@code changeStream}.
      *
-     * @param <C> the type of change object to use
+     * @param <C> representation of a change
+     * @param invert Inverts a change, so that applying the inverted change ({@code apply.accept(invert.apply(c))})
+     *               has the effect of undoing the original change ({@code c}). Inverting a change twice should
+     *               result in the original change ({@code invert.apply(invert.apply(c)).equals(c)}).
+     * @param apply Used to apply a change. From the point of view of {@code apply}, {@code C}
+     *              describes an action to be performed. Calling {@code apply.accept(c)}
+     *              <em>must</em> cause {@code c} to be emitted from {@code changeStream}.
+     * @param merge Used to merge two subsequent changes into one.
+     *              Returns an empty {@linkplain Optional} when the changes cannot or should not be merged.
      */
     default <C> UndoManager create(
             EventStream<C> changeStream,
@@ -43,15 +55,22 @@ public interface UndoManagerFactory {
     }
 
     /**
-     * Creates an {@link UndoManager}.
+     * Creates an {@link UndoManager} that tracks and optionally merges changes emitted from {@code changeStream}.
      *
-     * @param merge merges the next undo and the most recently pushed change. If the resulting change is an identity
-     *              change, neither of the changes will be stored (even the next undo).
-     * @param isIdentity determines whether change is an identity change (e.g. {@link Function#identity()}). For
-     *                   example, {@code 0} is the identity change in
-     *                   {@code BiFunction<Integer, Integer, Integer> plus = (i, j) -> i + j} because
-     *                   {@code 4 == 4 + 0 == plus.apply(4, 0)}
-     * @param <C> the type of change object to use
+     * @param <C> representation of a change
+     * @param invert Inverts a change, so that applying the inverted change ({@code apply.accept(invert.apply(c))})
+     *               has the effect of undoing the original change ({@code c}). Inverting a change twice should
+     *               result in the original change ({@code invert.apply(invert.apply(c)).equals(c)}).
+     * @param apply Used to apply a change. From the point of view of {@code apply}, {@code C}
+     *              describes an action to be performed. Calling {@code apply.accept(c)}
+     *              <em>must</em> cause {@code c} to be emitted from {@code changeStream}.
+     * @param merge Used to merge two subsequent changes into one.
+     *              Returns an empty {@linkplain Optional} when the changes cannot or should not be merged.
+     *              If two changes "annihilate" (i.e. {@code merge.apply(c1, c2).isPresen()} and
+     *              {@code isIdentity.test(merge.apply(c1, c2).get())} are both {@code true}), it should
+     *              be the case that one is inverse of the other ({@code invert.apply(c1).equals(c2)}).
+     * @param isIdentity returns true for changes whose application would have no effect, thereby equivalent
+     *                   to an identity function ({@link Function#identity()}) on the underlying model.
      */
     <C> UndoManager create(
             EventStream<C> changeStream,
@@ -61,10 +80,9 @@ public interface UndoManagerFactory {
             Predicate<C> isIdentity);
 
     /**
-     * Creates an {@link UndoManager} with an unlimited history where no changes will ever be merged and every change
-     * emitted by the changeStream is considered a non-identity change.
+     * Creates an {@link UndoManager} with unlimited history.
      *
-     * @param <C> the type of change object to use
+     * For description of parameters, see {@link #create(EventStream, Function, Consumer)}.
      */
     public static <C> UndoManager unlimitedHistoryUndoManager(
             EventStream<C> changeStream,
@@ -74,10 +92,9 @@ public interface UndoManagerFactory {
     }
 
     /**
-     * Creates an {@link UndoManager} with an unlimited history where every change emitted by the changeStream
-     * is considered a non-identity change
+     * Creates an {@link UndoManager} with unlimited history.
      *
-     * @param <C> the type of change object to use
+     * For description of parameters, see {@link #create(EventStream, Function, Consumer, BiFunction)}.
      */
     public static <C> UndoManager unlimitedHistoryUndoManager(
             EventStream<C> changeStream,
@@ -87,15 +104,9 @@ public interface UndoManagerFactory {
         return unlimitedHistoryUndoManager(changeStream, invert, apply, merge, c -> false);
     }
     /**
-     * Creates an {@link UndoManager} with an unlimited history.
+     * Creates an {@link UndoManager} with unlimited history.
      *
-     * @param merge merges the next undo and the most recently pushed change. If the resulting change is an identity
-     *              change, neither of the changes will be stored.
-     * @param isIdentity determines whether change is an identity change (e.g. {@link Function#identity()}). For
-     *                   example, {@code 0} is the identity change in
-     *                   {@code BiFunction<Integer, Integer, Integer> plus = (i, j) -> i + j} because
-     *                   {@code 4 == 4 + 0 == plus.apply(4, 0)}
-     * @param <C> the type of change object to use
+     * For description of parameters, see {@link #create(EventStream, Function, Consumer, BiFunction, Predicate)}.
      */
     public static <C> UndoManager unlimitedHistoryUndoManager(
             EventStream<C> changeStream,
@@ -108,8 +119,7 @@ public interface UndoManagerFactory {
     }
 
     /**
-     * Creates an {@link UndoManagerFactory} whose {@code create} methods will create an {@link UndoManager} with
-     * an unlimited history.
+     * Creates a factory for {@link UndoManager}s with unlimited history.
      */
     public static UndoManagerFactory unlimitedHistoryFactory() {
         return new UndoManagerFactory() {
@@ -126,11 +136,12 @@ public interface UndoManagerFactory {
     }
 
     /**
-     * Creates an {@link UndoManager} with a limited history where changes are never merged and every change emitted
-     * from the changeStream is considered to be a non-identity change; when at full capacity, a new change will
-     * cause the oldest change to be forgotten.
+     * Creates an {@link UndoManager} with bounded history.
+     * When at full capacity, a new change will cause the oldest change to be forgotten.
      *
-     * @param <C> the type of change object to use
+     * <p>For description of the remaining parameters, see {@link #create(EventStream, Function, Consumer)}.</p>
+     *
+     * @param capacity maximum number of changes the returned UndoManager can store
      */
     public static <C> UndoManager fixedSizeHistoryUndoManager(
             EventStream<C> changeStream,
@@ -141,11 +152,12 @@ public interface UndoManagerFactory {
     }
 
     /**
-     * Creates an {@link UndoManager} with a limited history where every change emitted from the changeStream
-     * is considered to be a non-identity change; when at full capacity, a new change will cause the oldest
-     * change to be forgotten.
+     * Creates an {@link UndoManager} with bounded history.
+     * When at full capacity, a new change will cause the oldest change to be forgotten.
      *
-     * @param <C> the type of change object to use
+     * <p>For description of the remaining parameters, see {@link #create(EventStream, Function, Consumer, BiFunction)}.</p>
+     *
+     * @param capacity maximum number of changes the returned UndoManager can store
      */
     public static <C> UndoManager fixedSizeHistoryUndoManager(
             EventStream<C> changeStream,
@@ -157,16 +169,12 @@ public interface UndoManagerFactory {
     }
 
     /**
-     * Creates an {@link UndoManager} with a limited history; when at full capacity, a new change will cause the
-     * oldest change to be forgotten.
+     * Creates an {@link UndoManager} with bounded history.
+     * When at full capacity, a new change will cause the oldest change to be forgotten.
      *
-     * @param merge merges the next undo and the most recently pushed change. If the resulting change is an identity
-     *              change, neither of the changes will be stored.
-     * @param isIdentity determines whether change is an identity change (e.g. {@link Function#identity()}). For
-     *                   example, {@code 0} is the identity change in
-     *                   {@code BiFunction<Integer, Integer, Integer> plus = (i, j) -> i + j} because
-     *                   {@code 4 == 4 + 0 == plus.apply(4, 0)}
-     * @param <C> the type of change object to use
+     * <p>For description of the remaining parameters, see {@link #create(EventStream, Function, Consumer, BiFunction, Predicate)}.</p>
+     *
+     * @param capacity maximum number of changes the returned UndoManager can store
      */
     public static <C> UndoManager fixedSizeHistoryUndoManager(
             EventStream<C> changeStream,
@@ -180,8 +188,8 @@ public interface UndoManagerFactory {
     }
 
     /**
-     * Creates an {@link UndoManagerFactory} whose {@code create} methods will create an {@link UndoManager} with
-     * a limited history; when at full capacity, a new change will cause the oldest change to be forgotten.
+     * Creates a factory for {@link UndoManager}s with bounded history.
+     * When at full capacity, a new change will cause the oldest change to be forgotten.
      */
     public static UndoManagerFactory fixedSizeHistoryFactory(int capacity) {
         return new UndoManagerFactory() {
@@ -198,12 +206,12 @@ public interface UndoManagerFactory {
     }
 
     /**
-     * Creates an {@link UndoManager} with no history where all changes emitted from the EventStream will be
-     * considered non-identity changes and each emitted change will change the
-     * {@link UndoManager#atMarkedPositionProperty()}; the {@link UndoManager} will never be able to undo/redo a change
-     * emitted from the changeStream.
-     *
-     * @param <C> the type of change object to use
+     * Creates an {@link UndoManager} with no history: all changes emitted from {@code changeStream} will be
+     * immediately forgotten. Therefore, the returned {@linkplain UndoManager} will never be able to undo/redo
+     * any change emitted from {@code changeStream}.
+     * However, the (imaginary) current position will keep advancing, so that one can still use
+     * {@link UndoManager#atMarkedPositionProperty()} to determine whether any change has occurred since the last
+     * {@link UndoManager#mark()} (e.g. since the last save).
      */
     public static <C> UndoManager zeroHistoryUndoManager(EventStream<C> changeStream) {
         ChangeQueue<C> queue = new ZeroSizeChangeQueue<>();
@@ -211,9 +219,9 @@ public interface UndoManagerFactory {
     }
 
     /**
-     * Creates an {@link UndoManagerFactory} whose {@code create} methods will create an {@link UndoManager} with
-     * no history: all changes will change the {@link UndoManager#atMarkedPositionProperty()}, but
-     * it will never be able to undo/redo a change emitted from the changeStream.
+     * Creates a factory for {@link UndoManager}s with no history.
+     *
+     * @see #zeroHistoryUndoManager(EventStream)
      */
     public static UndoManagerFactory zeroHistoryFactory() {
         return new UndoManagerFactory() {
