@@ -45,7 +45,17 @@ public class ZeroSizeChangeQueue<C> implements ChangeQueue<C> {
     }
 
     @Override
+    public C peekNext() {
+        throw new NoSuchElementException();
+    }
+
+    @Override
     public C next() {
+        throw new NoSuchElementException();
+    }
+
+    @Override
+    public C peekPrev() {
         throw new NoSuchElementException();
     }
 

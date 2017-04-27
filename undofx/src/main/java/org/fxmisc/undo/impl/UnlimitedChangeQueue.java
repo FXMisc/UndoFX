@@ -57,8 +57,18 @@ public class UnlimitedChangeQueue<C> implements ChangeQueue<C> {
     }
 
     @Override
+    public final C peekNext() {
+        return changes.get(currentPosition).getChange();
+    }
+
+    @Override
     public final C next() {
         return changes.get(currentPosition++).getChange();
+    }
+
+    @Override
+    public final C peekPrev() {
+        return changes.get(currentPosition - 1).getChange();
     }
 
     @Override

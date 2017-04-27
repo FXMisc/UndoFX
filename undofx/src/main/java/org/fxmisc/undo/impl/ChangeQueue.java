@@ -10,8 +10,16 @@ public interface ChangeQueue<C> {
 
     boolean hasPrev();
 
+    /** Returns the next item. Current position stays unchanged. */
+    C peekNext();
+
+    /** Returns the previous item. Current position stays unchanged. */
+    C peekPrev();
+
+    /** Returns the next item and increases the current position by 1. */
     C next();
 
+    /** Returns the previous item and decreases the current position by 1. */
     C prev();
 
     @SuppressWarnings({"unchecked"})

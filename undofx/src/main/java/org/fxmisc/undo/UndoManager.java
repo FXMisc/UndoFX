@@ -2,6 +2,8 @@ package org.fxmisc.undo;
 
 import javafx.beans.value.ObservableBooleanValue;
 
+import org.reactfx.value.Val;
+
 public interface UndoManager {
 
     /**
@@ -43,13 +45,13 @@ public interface UndoManager {
     /**
      * Indicates whether there is a change that can be undone.
      */
-    ObservableBooleanValue undoAvailableProperty();
+    Val<Boolean> undoAvailableProperty();
     boolean isUndoAvailable();
 
     /**
      * Indicates whether there is a change that can be redone.
      */
-    ObservableBooleanValue redoAvailableProperty();
+    Val<Boolean> redoAvailableProperty();
     boolean isRedoAvailable();
 
     /**

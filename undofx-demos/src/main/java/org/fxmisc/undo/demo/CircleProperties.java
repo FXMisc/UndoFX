@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import javafx.application.Application;
-import javafx.beans.binding.Bindings;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -194,8 +193,8 @@ public class CircleProperties extends Application {
                     c -> c.redo(), // function to undo a change
                     (c1, c2) -> c1.mergeWith(c2)); // function to merge two changes
 
-        undoBtn.disableProperty().bind(Bindings.not(undoManager.undoAvailableProperty()));
-        redoBtn.disableProperty().bind(Bindings.not(undoManager.redoAvailableProperty()));
+        undoBtn.disableProperty().bind(undoManager.undoAvailableProperty().map(x -> !x));
+        redoBtn.disableProperty().bind(undoManager.redoAvailableProperty().map(x -> !x));
         undoBtn.setOnAction(evt -> undoManager.undo());
         redoBtn.setOnAction(evt -> undoManager.redo());
         saveBtn.disableProperty().bind(undoManager.atMarkedPositionProperty());

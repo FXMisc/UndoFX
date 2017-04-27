@@ -74,9 +74,25 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
     }
 
     @Override
-    public C next() {
+    public C peekNext() {
         if(currentPosition < size) {
-            return fetch(currentPosition++).getChange();
+            return fetch(currentPosition).getChange();
+        } else {
+            throw new NoSuchElementException();
+        }
+    }
+
+    @Override
+    public C next() {
+        C c = peekNext();
+        currentPosition += 1;
+        return c;
+    }
+
+    @Override
+    public C peekPrev() {
+        if(currentPosition > 0) {
+            return fetch(currentPosition - 1).getChange();
         } else {
             throw new NoSuchElementException();
         }
@@ -84,11 +100,9 @@ public class FixedSizeChangeQueue<C> implements ChangeQueue<C> {
 
     @Override
     public C prev() {
-        if(currentPosition > 0) {
-            return fetch(--currentPosition).getChange();
-        } else {
-            throw new NoSuchElementException();
-        }
+        C c = peekPrev();
+        currentPosition -= 1;
+        return c;
     }
 
     @Override

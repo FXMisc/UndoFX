@@ -11,9 +11,12 @@ import javafx.beans.value.ObservableBooleanValue;
 
 import org.fxmisc.undo.UndoManager;
 import org.fxmisc.undo.impl.ChangeQueue.QueuePosition;
+import org.reactfx.EventSource;
 import org.reactfx.EventStream;
 import org.reactfx.Subscription;
 import org.reactfx.SuspendableNo;
+import org.reactfx.value.Val;
+import org.reactfx.value.ValBase;
 
 public class UndoManagerImpl<C> implements UndoManager {
 
@@ -45,21 +48,21 @@ public class UndoManagerImpl<C> implements UndoManager {
     private final Subscription subscription;
     private final SuspendableNo performingAction = new SuspendableNo();
 
-    private final BooleanBinding undoAvailable = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return queue.hasPrev();
-        }
+    private final EventSource<Void> invalidationRequests = new EventSource<Void>();
+
+    private final Val<C> nextToUndo = new ValBase<C>() {
+        @Override protected Subscription connect() { return invalidationRequests.subscribe(x -> invalidate()); }
+        @Override protected C computeValue() { return queue.hasPrev() ? queue.peekPrev() : null; }
     };
 
-    private final BooleanBinding redoAvailable = new BooleanBinding() {
-        @Override
-        protected boolean computeValue() {
-            return queue.hasNext();
-        }
+    private final Val<C> nextToRedo = new ValBase<C>() {
+        @Override protected Subscription connect() { return invalidationRequests.subscribe(x -> invalidate()); }
+        @Override protected C computeValue() { return queue.hasNext() ? queue.peekNext() : null; }
     };
 
     private final BooleanBinding atMarkedPosition = new BooleanBinding() {
+        { invalidationRequests.addObserver(x -> this.invalidate()); }
+
         @Override
         protected boolean computeValue() {
             return mark.equals(queue.getCurrentPosition());
@@ -96,9 +99,7 @@ public class UndoManagerImpl<C> implements UndoManager {
         if(isUndoAvailable()) {
             canMerge = false;
             performChange(invert.apply(queue.prev()));
-            undoAvailable.invalidate();
-            redoAvailable.invalidate();
-            atMarkedPosition.invalidate();
+            invalidateProperties();
             return true;
         } else {
             return false;
@@ -110,9 +111,7 @@ public class UndoManagerImpl<C> implements UndoManager {
         if(isRedoAvailable()) {
             canMerge = false;
             performChange(queue.next());
-            undoAvailable.invalidate();
-            redoAvailable.invalidate();
-            atMarkedPosition.invalidate();
+            invalidateProperties();
             return true;
         } else {
             return false;
@@ -121,22 +120,22 @@ public class UndoManagerImpl<C> implements UndoManager {
 
     @Override
     public boolean isUndoAvailable() {
-        return undoAvailable.get();
+        return nextToUndo.isPresent();
     }
 
     @Override
-    public ObservableBooleanValue undoAvailableProperty() {
-        return undoAvailable;
+    public Val<Boolean> undoAvailableProperty() {
+        return nextToUndo.map(c -> true).orElseConst(false);
     }
 
     @Override
     public boolean isRedoAvailable() {
-        return redoAvailable.get();
+        return nextToRedo.isPresent();
     }
 
     @Override
-    public ObservableBooleanValue redoAvailableProperty() {
-        return redoAvailable;
+    public Val<Boolean> redoAvailableProperty() {
+        return nextToRedo.map(c -> true).orElseConst(false);
     }
 
     @Override
@@ -172,7 +171,7 @@ public class UndoManagerImpl<C> implements UndoManager {
     @Override
     public void forgetHistory() {
         queue.forgetHistory();
-        undoAvailable.invalidate();
+        invalidateProperties();
     }
 
     private void performChange(C change) {
@@ -220,8 +219,10 @@ public class UndoManagerImpl<C> implements UndoManager {
             queue.push(change);
             canMerge = true;
         }
-        undoAvailable.invalidate();
-        redoAvailable.invalidate();
-        atMarkedPosition.invalidate();
+        invalidateProperties();
+    }
+
+    private void invalidateProperties() {
+        invalidationRequests.push(null);
     }
 }
