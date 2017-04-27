@@ -6,7 +6,9 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 import javafx.beans.property.SimpleIntegerProperty;
+
 import org.fxmisc.undo.UndoManager;
+import org.fxmisc.undo.UndoManager.UndoPosition;
 import org.fxmisc.undo.UndoManagerFactory;
 import org.junit.Test;
 import org.reactfx.EventSource;
@@ -61,6 +63,40 @@ public class UndoManagerTest {
         changes.push(5); // overflow
         changes.push(6);
         assertFalse(um.atMarkedPositionProperty().get());
+    }
+
+    @Test
+    public void testPositionValidAfterAddingAChange() {
+        EventSource<Integer> changes = new EventSource<>();
+        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(changes, c -> c, changes::push);
+
+        changes.push(1);
+        UndoPosition pos = um.getCurrentPosition();
+        changes.push(1);
+        assertTrue(pos.isValid());
+    }
+
+    @Test
+    public void testPositionInvalidAfterMerge() {
+        EventSource<Integer> changes = new EventSource<>();
+        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+                changes, c -> -c, changes::push, (c1, c2) -> Optional.of(c1 + c2));
+
+        changes.push(1);
+        UndoPosition pos = um.getCurrentPosition();
+        changes.push(1);
+        assertFalse(pos.isValid());
+    }
+
+    @Test
+    public void testRedoUnavailableAfterAnnihilation() {
+        EventSource<Integer> changes = new EventSource<>();
+        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+                changes, c -> -c, changes::push, (c1, c2) -> Optional.of(c1 + c2), c -> c == 0);
+
+        changes.push(1);
+        changes.push(-1);
+        assertFalse(um.isRedoAvailable());
     }
 
     @Test

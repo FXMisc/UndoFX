@@ -207,13 +207,15 @@ public class UndoManagerImpl<C> implements UndoManager {
             if(merged.isPresent()) {
                 if (isIdentity.test(merged.get())) {
                     canMerge = false;
+                    queue.push(); // clears the future
                 } else {
                     canMerge = true;
                     queue.push(merged.get());
                 }
             } else {
                 canMerge = true;
-                queue.push(prev, change);
+                queue.next();
+                queue.push(change);
             }
         } else {
             queue.push(change);
