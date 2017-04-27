@@ -110,9 +110,9 @@ There is also a "Save" button that fakes a save operation. It is enabled only wh
 
 ### Run from the pre-built JAR
 
-[Download](https://github.com/TomasMikula/UndoFX/releases/download/v1.2.1/undofx-demos-fat-1.2.1.jar) the pre-built "fat" JAR file and run
+[Download](https://github.com/TomasMikula/UndoFX/releases/download/v1.3.0/undofx-demos-fat-1.3.0.jar) the pre-built "fat" JAR file and run
 
-    java -cp undofx-demos-fat-1.2.1.jar org.fxmisc.undo.demo.CircleProperties
+    java -cp undofx-demos-fat-1.3.0.jar org.fxmisc.undo.demo.CircleProperties
 
 ### Run from the source repo
 
@@ -142,25 +142,25 @@ Use UndoFX in your project
 
 | Group ID        | Artifact ID | Version |
 | :-------------: | :---------: | :-----: |
-| org.fxmisc.undo | undofx      | 1.2.1   |
+| org.fxmisc.undo | undofx      | 1.3.0   |
 
 ### Gradle example
 
 ```groovy
 dependencies {
-    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.2.1'
+    compile group: 'org.fxmisc.undo', name: 'undofx', version: '1.3.0'
 }
 ```
 
 ### Sbt example
 
 ```scala
-libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.2.1"
+libraryDependencies += "org.fxmisc.undo" % "undofx" % "1.3.0"
 ```
 
 ### Manual download
 
-Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v1.2.1/undofx-1.2.1.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v1.2.1/undofx-fat-1.2.1.jar) and place it on your classpath.
+Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v1.3.0/undofx-1.3.0.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v1.3.0/undofx-fat-1.3.0.jar) and place it on your classpath.
 
 
 License
@@ -172,4 +172,4 @@ License
 Links
 -----
 
-[API Documentation (Javadoc)](http://fxmisc.github.io/undo/javadoc/org/fxmisc/undo/package-summary.html)  
+[API Documentation (Javadoc)](http://fxmisc.github.io/undo/javadoc/org/fxmisc/undo/1.3.0/package-summary.html)  
