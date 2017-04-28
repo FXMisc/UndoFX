@@ -26,7 +26,7 @@ public interface UndoManagerFactory {
      *              describes an action to be performed. Calling {@code apply.accept(c)}
      *              <em>must</em> cause {@code c} to be emitted from {@code changeStream}.
      */
-    default <C> UndoManager create(
+    default <C> UndoManager<C> create(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply) {
@@ -46,7 +46,7 @@ public interface UndoManagerFactory {
      * @param merge Used to merge two subsequent changes into one.
      *              Returns an empty {@linkplain Optional} when the changes cannot or should not be merged.
      */
-    default <C> UndoManager create(
+    default <C> UndoManager<C> create(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
@@ -72,7 +72,7 @@ public interface UndoManagerFactory {
      * @param isIdentity returns true for changes whose application would have no effect, thereby equivalent
      *                   to an identity function ({@link Function#identity()}) on the underlying model.
      */
-    <C> UndoManager create(
+    <C> UndoManager<C> create(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
@@ -84,7 +84,7 @@ public interface UndoManagerFactory {
      *
      * For description of parameters, see {@link #create(EventStream, Function, Consumer)}.
      */
-    public static <C> UndoManager unlimitedHistoryUndoManager(
+    public static <C> UndoManager<C> unlimitedHistoryUndoManager(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply) {
@@ -96,7 +96,7 @@ public interface UndoManagerFactory {
      *
      * For description of parameters, see {@link #create(EventStream, Function, Consumer, BiFunction)}.
      */
-    public static <C> UndoManager unlimitedHistoryUndoManager(
+    public static <C> UndoManager<C> unlimitedHistoryUndoManager(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
@@ -108,7 +108,7 @@ public interface UndoManagerFactory {
      *
      * For description of parameters, see {@link #create(EventStream, Function, Consumer, BiFunction, Predicate)}.
      */
-    public static <C> UndoManager unlimitedHistoryUndoManager(
+    public static <C> UndoManager<C> unlimitedHistoryUndoManager(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
@@ -124,7 +124,7 @@ public interface UndoManagerFactory {
     public static UndoManagerFactory unlimitedHistoryFactory() {
         return new UndoManagerFactory() {
             @Override
-            public <C> UndoManager create(
+            public <C> UndoManager<C> create(
                     EventStream<C> changeStream,
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply,
@@ -143,7 +143,7 @@ public interface UndoManagerFactory {
      *
      * @param capacity maximum number of changes the returned UndoManager can store
      */
-    public static <C> UndoManager fixedSizeHistoryUndoManager(
+    public static <C> UndoManager<C> fixedSizeHistoryUndoManager(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
@@ -159,7 +159,7 @@ public interface UndoManagerFactory {
      *
      * @param capacity maximum number of changes the returned UndoManager can store
      */
-    public static <C> UndoManager fixedSizeHistoryUndoManager(
+    public static <C> UndoManager<C> fixedSizeHistoryUndoManager(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
@@ -176,7 +176,7 @@ public interface UndoManagerFactory {
      *
      * @param capacity maximum number of changes the returned UndoManager can store
      */
-    public static <C> UndoManager fixedSizeHistoryUndoManager(
+    public static <C> UndoManager<C> fixedSizeHistoryUndoManager(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
@@ -194,7 +194,7 @@ public interface UndoManagerFactory {
     public static UndoManagerFactory fixedSizeHistoryFactory(int capacity) {
         return new UndoManagerFactory() {
             @Override
-            public <C> UndoManager create(
+            public <C> UndoManager<C> create(
                     EventStream<C> changeStream,
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply,
@@ -213,7 +213,7 @@ public interface UndoManagerFactory {
      * {@link UndoManager#atMarkedPositionProperty()} to determine whether any change has occurred since the last
      * {@link UndoManager#mark()} (e.g. since the last save).
      */
-    public static <C> UndoManager zeroHistoryUndoManager(EventStream<C> changeStream) {
+    public static <C> UndoManager<C> zeroHistoryUndoManager(EventStream<C> changeStream) {
         ChangeQueue<C> queue = new ZeroSizeChangeQueue<>();
         return new UndoManagerImpl<>(queue, c -> c, c -> {}, (c1, c2) -> Optional.empty(), c -> false, changeStream);
     }
@@ -226,7 +226,7 @@ public interface UndoManagerFactory {
     public static UndoManagerFactory zeroHistoryFactory() {
         return new UndoManagerFactory() {
             @Override
-            public <C> UndoManager create(
+            public <C> UndoManager<C> create(
                     EventStream<C> changeStream,
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply,

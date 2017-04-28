@@ -4,7 +4,7 @@ import javafx.beans.value.ObservableBooleanValue;
 
 import org.reactfx.value.Val;
 
-public interface UndoManager {
+public interface UndoManager<C> {
 
     /**
      * Represents a position in UndoManager's history.
@@ -47,6 +47,18 @@ public interface UndoManager {
      */
     Val<Boolean> undoAvailableProperty();
     boolean isUndoAvailable();
+
+    /**
+     * Gives a peek at the change that will be undone by {@link #undo()}.
+     */
+    Val<C> nextToUndoProperty();
+    default C getNextToUndo() { return nextToUndoProperty().getValue(); }
+
+    /**
+     * Gives a peek at the change that will be redone by {@link #redo()}.
+     */
+    Val<C> nextToRedoProperty();
+    default C getNextToRedo() { return nextToRedoProperty().getValue(); }
 
     /**
      * Indicates whether there is a change that can be redone.

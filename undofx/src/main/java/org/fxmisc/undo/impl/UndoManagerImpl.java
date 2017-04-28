@@ -18,7 +18,7 @@ import org.reactfx.SuspendableNo;
 import org.reactfx.value.Val;
 import org.reactfx.value.ValBase;
 
-public class UndoManagerImpl<C> implements UndoManager {
+public class UndoManagerImpl<C> implements UndoManager<C> {
 
     private class UndoPositionImpl implements UndoPosition {
         private final QueuePosition queuePos;
@@ -116,6 +116,16 @@ public class UndoManagerImpl<C> implements UndoManager {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public Val<C> nextToUndoProperty() {
+        return nextToUndo;
+    }
+
+    @Override
+    public Val<C> nextToRedoProperty() {
+        return nextToRedo;
     }
 
     @Override

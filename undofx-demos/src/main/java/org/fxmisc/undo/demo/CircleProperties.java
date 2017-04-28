@@ -173,7 +173,7 @@ public class CircleProperties extends Application {
     private final Button redoBtn = new Button("Redo");
     private final Button saveBtn = new Button("Save");
     private final EventStream<CircleChange<?>> changes;
-    private final UndoManager undoManager;
+    private final UndoManager<CircleChange<?>> undoManager;
 
     {
         circle.fillProperty().bind(colorPicker.valueProperty());

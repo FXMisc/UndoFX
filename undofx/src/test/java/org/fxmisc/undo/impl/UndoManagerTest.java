@@ -20,7 +20,7 @@ public class UndoManagerTest {
     public void testUndoInvertsTheChange() {
         EventSource<Integer> changes = new EventSource<>();
         Var<Integer> lastAction = Var.newSimpleVar(null);
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager<?> um = UndoManagerFactory.unlimitedHistoryUndoManager(
                 changes, i -> -i, i -> { lastAction.setValue(i); changes.push(i); });
 
         changes.push(3);
@@ -43,7 +43,7 @@ public class UndoManagerTest {
     @Test
     public void testMark() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.fixedSizeHistoryUndoManager(
+        UndoManager<?> um = UndoManagerFactory.fixedSizeHistoryUndoManager(
                 changes, c -> c, changes::push, 4);
 
         assertTrue(um.atMarkedPositionProperty().get());
@@ -68,7 +68,7 @@ public class UndoManagerTest {
     @Test
     public void testPositionValidAfterAddingAChange() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(changes, c -> c, changes::push);
+        UndoManager<?> um = UndoManagerFactory.unlimitedHistoryUndoManager(changes, c -> c, changes::push);
 
         changes.push(1);
         UndoPosition pos = um.getCurrentPosition();
@@ -79,7 +79,7 @@ public class UndoManagerTest {
     @Test
     public void testPositionInvalidAfterMerge() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager<?> um = UndoManagerFactory.unlimitedHistoryUndoManager(
                 changes, c -> -c, changes::push, (c1, c2) -> Optional.of(c1 + c2));
 
         changes.push(1);
@@ -91,7 +91,7 @@ public class UndoManagerTest {
     @Test
     public void testRedoUnavailableAfterAnnihilation() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager<?> um = UndoManagerFactory.unlimitedHistoryUndoManager(
                 changes, c -> -c, changes::push, (c1, c2) -> Optional.of(c1 + c2), c -> c == 0);
 
         changes.push(1);
@@ -102,7 +102,7 @@ public class UndoManagerTest {
     @Test
     public void zeroHistoryUndoManagerMark() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.zeroHistoryUndoManager(changes);
+        UndoManager<?> um = UndoManagerFactory.zeroHistoryUndoManager(changes);
 
         assertTrue(um.atMarkedPositionProperty().get());
         changes.push(1);
@@ -122,7 +122,7 @@ public class UndoManagerTest {
     @Test
     public void testAtMarkedPositionRevalidation() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.zeroHistoryUndoManager(changes);
+        UndoManager<?> um = UndoManagerFactory.zeroHistoryUndoManager(changes);
 
         um.atMarkedPositionProperty().get(); // atMarkedPositionProperty is now valid
 
@@ -142,7 +142,7 @@ public class UndoManagerTest {
     @Test(expected = IllegalStateException.class)
     public void testFailFastWhenExpectedChangeNotReceived() {
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager<?> um = UndoManagerFactory.unlimitedHistoryUndoManager(
                 changes, i -> -i, i -> {});
 
         changes.push(1);
@@ -156,7 +156,7 @@ public class UndoManagerTest {
     public void testPushedNonIdentityChangeIsStored() {
         SimpleIntegerProperty lastAppliedValue = new SimpleIntegerProperty(0);
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager<?> um = UndoManagerFactory.unlimitedHistoryUndoManager(
                 changes,
                 i -> -i,    // invert
                 i -> { lastAppliedValue.set(i); changes.push(i); }, // apply change and re-emit value so expected change is received
@@ -174,7 +174,7 @@ public class UndoManagerTest {
     public void testPushedIdentityChangeIsNotStored() {
         SimpleIntegerProperty lastAppliedValue = new SimpleIntegerProperty(0);
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager<?> um = UndoManagerFactory.unlimitedHistoryUndoManager(
                 changes,
                 i -> -i,    // invert
                 i -> { lastAppliedValue.set(i); changes.push(i); }, // apply change and re-emit value so expected change is received
@@ -195,7 +195,7 @@ public class UndoManagerTest {
     public void testMergeResultingInIdentityChangeAnnihilatesBothAndPreventsNextMerge() {
         SimpleIntegerProperty lastAppliedValue = new SimpleIntegerProperty(0);
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager<?> um = UndoManagerFactory.unlimitedHistoryUndoManager(
                 changes,
                 i -> -i,    // invert
                 i -> { lastAppliedValue.set(i); changes.push(i); }, // apply change and re-emit value so expected change is received
@@ -229,7 +229,7 @@ public class UndoManagerTest {
     public void testMergeResultingInNonIdentityChangeStoresMergeAndPreventsNextMerge() {
         SimpleIntegerProperty lastAppliedValue = new SimpleIntegerProperty(0);
         EventSource<Integer> changes = new EventSource<>();
-        UndoManager um = UndoManagerFactory.unlimitedHistoryUndoManager(
+        UndoManager<?> um = UndoManagerFactory.unlimitedHistoryUndoManager(
                 changes,
                 i -> -i,    // invert
                 i -> { lastAppliedValue.set(i); changes.push(i); }, // apply change and re-emit value so expected change is received
