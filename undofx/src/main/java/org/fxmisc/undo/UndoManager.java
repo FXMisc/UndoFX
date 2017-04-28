@@ -51,14 +51,36 @@ public interface UndoManager<C> {
     /**
      * Gives a peek at the change that will be undone by {@link #undo()}.
      */
-    Val<C> nextToUndoProperty();
-    default C getNextToUndo() { return nextToUndoProperty().getValue(); }
+    Val<C> nextUndoProperty();
+    default C getNextUndo() { return nextUndoProperty().getValue(); }
 
     /**
      * Gives a peek at the change that will be redone by {@link #redo()}.
      */
-    Val<C> nextToRedoProperty();
-    default C getNextToRedo() { return nextToRedoProperty().getValue(); }
+    Val<C> nextRedoProperty();
+    default C getNextRedo() { return nextRedoProperty().getValue(); }
+
+    /**
+     * Gives a peek at the change that will be undone by {@link #undo()}.
+     *
+     * @deprecated use {@link #nextUndoProperty()}
+     */
+    @Deprecated
+    default Val<C> nextToUndoProperty() { return nextUndoProperty(); }
+
+    @Deprecated
+    default C getNextToUndo() { return nextUndoProperty().getValue(); }
+
+    /**
+     * Gives a peek at the change that will be redone by {@link #redo()}.
+     *
+     * @deprecated use {@link #nextRedoProperty()}
+     */
+    @Deprecated
+    default Val<C> nextToRedoProperty() { return nextRedoProperty(); }
+
+    @Deprecated
+    default C getNextToRedo() { return nextRedoProperty().getValue(); }
 
     /**
      * Indicates whether there is a change that can be redone.
