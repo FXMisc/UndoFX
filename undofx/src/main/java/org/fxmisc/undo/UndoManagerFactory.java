@@ -1,5 +1,6 @@
 package org.fxmisc.undo;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -72,12 +73,44 @@ public interface UndoManagerFactory {
      * @param isIdentity returns true for changes whose application would have no effect, thereby equivalent
      *                   to an identity function ({@link Function#identity()}) on the underlying model.
      */
+    default  <C> UndoManager<C> create(
+            EventStream<C> changeStream,
+            Function<? super C, ? extends C> invert,
+            Consumer<C> apply,
+            BiFunction<C, C, Optional<C>> merge,
+            Predicate<C> isIdentity) {
+        return create(changeStream, invert, apply, merge, isIdentity, Duration.ZERO);
+    }
+
+    /**
+     * Creates an {@link UndoManager} that tracks and optionally merges changes emitted from {@code changeStream}.
+     *
+     * @param <C> representation of a change
+     * @param invert Inverts a change, so that applying the inverted change ({@code apply.accept(invert.apply(c))})
+     *               has the effect of undoing the original change ({@code c}). Inverting a change twice should
+     *               result in the original change ({@code invert.apply(invert.apply(c)).equals(c)}).
+     * @param apply Used to apply a change. From the point of view of {@code apply}, {@code C}
+     *              describes an action to be performed. Calling {@code apply.accept(c)}
+     *              <em>must</em> cause {@code c} to be emitted from {@code changeStream}.
+     * @param merge Used to merge two subsequent changes into one.
+     *              Returns an empty {@linkplain Optional} when the changes cannot or should not be merged.
+     *              If two changes "annihilate" (i.e. {@code merge.apply(c1, c2).isPresen()} and
+     *              {@code isIdentity.test(merge.apply(c1, c2).get())} are both {@code true}), it should
+     *              be the case that one is inverse of the other ({@code invert.apply(c1).equals(c2)}).
+     * @param isIdentity returns true for changes whose application would have no effect, thereby equivalent
+     *                   to an identity function ({@link Function#identity()}) on the underlying model.
+     * @param preventMergeDelay the amount by which to wait before calling {@link UndoManager#preventMerge()}.
+     *                          Helpful when one wants to prevent merges after a period of inactivity (the
+     *                          {@code changeStream} doesn't emit an event after the given duration). Passing in
+     *                          a negative or zero duration will never call {@link UndoManager#preventMerge()}.
+     */
     <C> UndoManager<C> create(
             EventStream<C> changeStream,
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
-            Predicate<C> isIdentity);
+            Predicate<C> isIdentity,
+            Duration preventMergeDelay);
 
     /**
      * Creates an {@link UndoManager} with unlimited history.
@@ -101,7 +134,7 @@ public interface UndoManagerFactory {
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge) {
-        return unlimitedHistoryUndoManager(changeStream, invert, apply, merge, c -> false);
+        return unlimitedHistoryUndoManager(changeStream, invert, apply, merge, c -> false, Duration.ZERO);
     }
     /**
      * Creates an {@link UndoManager} with unlimited history.
@@ -113,9 +146,10 @@ public interface UndoManagerFactory {
             Function<? super C, ? extends C> invert,
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
-            Predicate<C> isIdentity) {
+            Predicate<C> isIdentity,
+            Duration preventMergeDelay) {
         ChangeQueue<C> queue = new UnlimitedChangeQueue<C>();
-        return new UndoManagerImpl<>(queue, invert, apply, merge, isIdentity, changeStream);
+        return new UndoManagerImpl<>(queue, invert, apply, merge, isIdentity, changeStream, preventMergeDelay);
     }
 
     /**
@@ -129,8 +163,9 @@ public interface UndoManagerFactory {
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply,
                     BiFunction<C, C, Optional<C>> merge,
-                    Predicate<C> isIdentity) {
-                return unlimitedHistoryUndoManager(changeStream, invert, apply, merge, isIdentity);
+                    Predicate<C> isIdentity,
+                    Duration preventMergeDelay) {
+                return unlimitedHistoryUndoManager(changeStream, invert, apply, merge, isIdentity, preventMergeDelay);
             }
         };
     }
@@ -165,7 +200,7 @@ public interface UndoManagerFactory {
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
             int capacity) {
-        return fixedSizeHistoryUndoManager(changeStream, invert, apply, merge, c -> false, capacity);
+        return fixedSizeHistoryUndoManager(changeStream, invert, apply, merge, c -> false, Duration.ZERO, capacity);
     }
 
     /**
@@ -182,9 +217,10 @@ public interface UndoManagerFactory {
             Consumer<C> apply,
             BiFunction<C, C, Optional<C>> merge,
             Predicate<C> isIdentity,
+            Duration preventMergeDelay,
             int capacity) {
         ChangeQueue<C> queue = new FixedSizeChangeQueue<C>(capacity);
-        return new UndoManagerImpl<>(queue, invert, apply, merge, isIdentity, changeStream);
+        return new UndoManagerImpl<>(queue, invert, apply, merge, isIdentity, changeStream, preventMergeDelay);
     }
 
     /**
@@ -199,8 +235,9 @@ public interface UndoManagerFactory {
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply,
                     BiFunction<C, C, Optional<C>> merge,
-                    Predicate<C> isIdentity) {
-                return fixedSizeHistoryUndoManager(changeStream, invert, apply, merge, isIdentity, capacity);
+                    Predicate<C> isIdentity,
+                    Duration preventMergeDelay) {
+                return fixedSizeHistoryUndoManager(changeStream, invert, apply, merge, isIdentity, preventMergeDelay, capacity);
             }
         };
     }
@@ -231,7 +268,8 @@ public interface UndoManagerFactory {
                     Function<? super C, ? extends C> invert,
                     Consumer<C> apply,
                     BiFunction<C, C, Optional<C>> merge,
-                    Predicate<C> isIdentity) {
+                    Predicate<C> isIdentity,
+                    Duration preventMergeDelay) {
                 return zeroHistoryUndoManager(changeStream);
             }
         };

@@ -1,5 +1,6 @@
 package org.fxmisc.undo.impl;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -80,13 +81,32 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
             BiFunction<C, C, Optional<C>> merge,
             Predicate<C> isIdentity,
             EventStream<C> changeSource) {
+        this(queue, invert, apply, merge, isIdentity, changeSource, Duration.ZERO);
+    }
+
+    public UndoManagerImpl(
+            ChangeQueue<C> queue,
+            Function<? super C, ? extends C> invert,
+            Consumer<C> apply,
+            BiFunction<C, C, Optional<C>> merge,
+            Predicate<C> isIdentity,
+            EventStream<C> changeSource,
+            Duration preventMergeDelay) {
         this.queue = queue;
         this.invert = invert;
         this.apply = apply;
         this.merge = merge;
         this.isIdentity = isIdentity;
         this.mark = queue.getCurrentPosition();
-        this.subscription = changeSource.subscribe(this::changeObserved);
+
+        Subscription mainSub = changeSource.subscribe(this::changeObserved);
+
+        if (preventMergeDelay.isZero() || preventMergeDelay.isNegative()) {
+            subscription = mainSub;
+        } else {
+            Subscription sub2 = changeSource.successionEnds(preventMergeDelay).subscribe(ignore -> preventMerge());
+            subscription = mainSub.and(sub2);
+        }
     }
 
     @Override
