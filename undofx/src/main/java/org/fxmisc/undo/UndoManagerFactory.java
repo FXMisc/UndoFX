@@ -136,10 +136,25 @@ public interface UndoManagerFactory {
             BiFunction<C, C, Optional<C>> merge) {
         return unlimitedHistoryUndoManager(changeStream, invert, apply, merge, c -> false, Duration.ZERO);
     }
+
     /**
      * Creates an {@link UndoManager} with unlimited history.
      *
      * For description of parameters, see {@link #create(EventStream, Function, Consumer, BiFunction, Predicate)}.
+     */
+    public static <C> UndoManager<C> unlimitedHistoryUndoManager(
+            EventStream<C> changeStream,
+            Function<? super C, ? extends C> invert,
+            Consumer<C> apply,
+            BiFunction<C, C, Optional<C>> merge,
+            Predicate<C> isIdentity) {
+        return unlimitedHistoryUndoManager(changeStream, invert, apply, merge, isIdentity, Duration.ZERO);
+    }
+
+    /**
+     * Creates an {@link UndoManager} with unlimited history.
+     *
+     * For description of parameters, see {@link #create(EventStream, Function, Consumer, BiFunction, Predicate, Duration)}.
      */
     public static <C> UndoManager<C> unlimitedHistoryUndoManager(
             EventStream<C> changeStream,
