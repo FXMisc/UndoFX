@@ -50,12 +50,12 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
 
     private final EventSource<Void> invalidationRequests = new EventSource<Void>();
 
-    private final Val<C> nextToUndo = new ValBase<C>() {
+    private final Val<C> nextUndo = new ValBase<C>() {
         @Override protected Subscription connect() { return invalidationRequests.subscribe(x -> invalidate()); }
         @Override protected C computeValue() { return queue.hasPrev() ? queue.peekPrev() : null; }
     };
 
-    private final Val<C> nextToRedo = new ValBase<C>() {
+    private final Val<C> nextRedo = new ValBase<C>() {
         @Override protected Subscription connect() { return invalidationRequests.subscribe(x -> invalidate()); }
         @Override protected C computeValue() { return queue.hasNext() ? queue.peekNext() : null; }
     };
@@ -119,33 +119,44 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
     }
 
     @Override
+    public Val<C> nextUndoProperty() {
+        return nextUndo;
+    }
+
+    @Override
+    public Val<C> nextRedoProperty() {
+        return nextRedo;
+    }
+
+
+    @Override
     public Val<C> nextToUndoProperty() {
-        return nextToUndo;
+        return nextUndo;
     }
 
     @Override
     public Val<C> nextToRedoProperty() {
-        return nextToRedo;
+        return nextRedo;
     }
 
     @Override
     public boolean isUndoAvailable() {
-        return nextToUndo.isPresent();
+        return nextUndo.isPresent();
     }
 
     @Override
     public Val<Boolean> undoAvailableProperty() {
-        return nextToUndo.map(c -> true).orElseConst(false);
+        return nextUndo.map(c -> true).orElseConst(false);
     }
 
     @Override
     public boolean isRedoAvailable() {
-        return nextToRedo.isPresent();
+        return nextRedo.isPresent();
     }
 
     @Override
     public Val<Boolean> redoAvailableProperty() {
-        return nextToRedo.map(c -> true).orElseConst(false);
+        return nextRedo.map(c -> true).orElseConst(false);
     }
 
     @Override
