@@ -10,4 +10,10 @@ subprojects {
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
+
+    task getVersion {
+        doLast {
+            println version
+        }
+    }
 }
