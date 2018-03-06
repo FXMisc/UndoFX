@@ -51,22 +51,18 @@ public class UndoManagerTest {
     @Test
     public void testMultiChangeUndoInvertsTheChangesAndReversesTheList() {
         EventSource<List<Integer>> changes = new EventSource<>();
-        Var<List<Integer>> lastUndo = Var.newSimpleVar(null);
-        Var<List<Integer>> lastRedo = Var.newSimpleVar(null);
+        Var<List<Integer>> lastChange = Var.newSimpleVar(null);
         UndoManager<?> um = UndoManagerFactory.unlimitedHistoryMultiChangeUM(
-                changes, i -> -i,
-                i -> { lastUndo.setValue(i); changes.push(i); },
-                i -> { lastRedo.setValue(i); changes.push(i); });
+                changes, i -> -i, i -> { lastChange.setValue(i); changes.push(i); });
 
         changes.push(list(3, 7));
-        assertNull(lastUndo.getValue());
-        assertNull(lastRedo.getValue());
+        assertNull(lastChange.getValue());
 
         um.undo();
-        assertEquals(list(-7, -3), lastUndo.getValue());
+        assertEquals(list(-7, -3), lastChange.getValue());
 
         um.redo();
-        assertEquals(list(3, 7), lastRedo.getValue());
+        assertEquals(list(3, 7), lastChange.getValue());
     }
 
     @Test
@@ -121,7 +117,7 @@ public class UndoManagerTest {
     public void testPositionInvalidAfterMultiChangeMerge() {
         EventSource<List<Integer>> changes = new EventSource<>();
         UndoManager<?> um = UndoManagerFactory.unlimitedHistoryMultiChangeUM(
-                changes, c -> -c, changes::push, changes::push, (c1, c2) -> Optional.of(c1 + c2));
+                changes, c -> -c, changes::push, (c1, c2) -> Optional.of(c1 + c2));
 
         changes.push(list(1));
         UndoManager.UndoPosition pos = um.getCurrentPosition();
@@ -144,7 +140,7 @@ public class UndoManagerTest {
     public void testRedoUnavailableAfterMultiChangeAnnihilation() {
         EventSource<List<Integer>> changes = new EventSource<>();
         UndoManager<?> um = UndoManagerFactory.unlimitedHistoryMultiChangeUM(
-                changes, c -> -c, changes::push, changes::push, (c1, c2) -> Optional.of(c1 + c2), c -> c == 0);
+                changes, c -> -c, changes::push, (c1, c2) -> Optional.of(c1 + c2), c -> c == 0);
 
         changes.push(list(1, 2, 3));
         changes.push(list(-1, -2, -3));
@@ -229,7 +225,6 @@ public class UndoManagerTest {
         UndoManager<?> um = UndoManagerFactory.unlimitedHistoryMultiChangeUM(
                 changes,
                 i -> -i,    // invert
-                i -> { lastAppliedValue.set(i); changes.push(i); }, // apply undo and re-emit value so expected change is received
                 i -> { lastAppliedValue.set(i); changes.push(i); }, // apply redo and re-emit value so expected change is received
                 (a, b) -> Optional.of(a + b), // merge adds two changes together
                 i -> i == 0); // identity change = 0
@@ -269,7 +264,6 @@ public class UndoManagerTest {
         UndoManager<?> um = UndoManagerFactory.unlimitedHistoryMultiChangeUM(
                 changes,
                 i -> -i,    // invert
-                i -> { lastAppliedValue.set(i); changes.push(i); }, // apply undo and re-emit value so expected change is received
                 i -> { lastAppliedValue.set(i); changes.push(i); }, // apply redo and re-emit value so expected change is received
                 (a, b) -> Optional.of(a + b), // merge adds two changes together
                 i -> i == 0); // identity change = 0
@@ -325,7 +319,6 @@ public class UndoManagerTest {
         UndoManager<?> um = UndoManagerFactory.unlimitedHistoryMultiChangeUM(
                 changes,
                 i -> -i,    // invert
-                i -> { lastAppliedValue.set(i); changes.push(i); }, // apply undo and re-emit value so expected change is received
                 i -> { lastAppliedValue.set(i); changes.push(i); }, // apply redo and re-emit value so expected change is received
                 (a, b) -> Optional.of(a + b), // merge adds two changes together
                 i -> i == 0); // identity change = 0
@@ -385,7 +378,6 @@ public class UndoManagerTest {
         UndoManager<?> um = UndoManagerFactory.unlimitedHistoryMultiChangeUM(
                 changes,
                 i -> -i,    // invert
-                i -> { lastAppliedValue.set(i); changes.push(i); }, // apply change and re-emit value so expected change is received
                 i -> { lastAppliedValue.set(i); changes.push(i); }, // apply change and re-emit value so expected change is received
                 (a, b) -> Optional.of(a + b), // merge adds two changes together
                 i -> i == 0); // identity change = 0

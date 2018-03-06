@@ -21,19 +21,17 @@ public class MultiChangeUndoManagerImpl<C> extends UndoManagerImpl<List<C>> {
     public MultiChangeUndoManagerImpl(
             ChangeQueue<List<C>> queue,
             Function<? super C, ? extends C> changeInvert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             BiFunction<C, C, Optional<C>> changeMerge,
             Predicate<C> changeIsIdentity,
             EventStream<List<C>> changeSource) {
-        this(queue, changeInvert, applyUndo, applyRedo, changeMerge, changeIsIdentity, changeSource, Duration.ZERO);
+        this(queue, changeInvert, apply, changeMerge, changeIsIdentity, changeSource, Duration.ZERO);
     }
 
     public MultiChangeUndoManagerImpl(
             ChangeQueue<List<C>> queue,
             Function<? super C, ? extends C> changeInvert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             BiFunction<C, C, Optional<C>> changeMerge,
             Predicate<C> changeIsIdentity,
             EventStream<List<C>> changeSource,
@@ -49,8 +47,7 @@ public class MultiChangeUndoManagerImpl<C> extends UndoManagerImpl<List<C>> {
                     }
                     return l;
                 },
-                applyUndo,
-                applyRedo,
+                apply,
                 (list1, list2) -> {
                     // if one list is empty, return the other list
                     if (list1.size() == 0) {
