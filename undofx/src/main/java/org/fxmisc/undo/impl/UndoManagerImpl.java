@@ -6,6 +6,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
@@ -122,26 +123,12 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
 
     @Override
     public boolean undo() {
-        if(isUndoAvailable()) {
-            canMerge = false;
-            performChange(invert.apply(queue.prev()));
-            invalidateProperties();
-            return true;
-        } else {
-            return false;
-        }
+        return applyChange(isUndoAvailable(), () -> invert.apply(queue.prev()));
     }
 
     @Override
     public boolean redo() {
-        if(isRedoAvailable()) {
-            canMerge = false;
-            performChange(queue.next());
-            invalidateProperties();
-            return true;
-        } else {
-            return false;
-        }
+        return applyChange(isRedoAvailable(), queue::next);
     }
 
     @Override
@@ -210,12 +197,29 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
         invalidateProperties();
     }
 
-    private void performChange(C change) {
-        this.expectedChange = change;
-        performingAction.suspendWhile(() -> apply.accept(change));
-        if(this.expectedChange != null) {
-            throw new IllegalStateException("Expected change not received:\n"
-                    + this.expectedChange);
+    /**
+     * Helper method for reducing code duplication
+     *
+     * @param isChangeAvailable same as `isUndoAvailable()` [Undo] or `isRedoAvailable()` [Redo]
+     * @param changeToApply same as `invert.apply(queue.prev())` [Undo] or `queue.next()` [Redo]
+     */
+    private boolean applyChange(boolean isChangeAvailable, Supplier<C> changeToApply) {
+        if (isChangeAvailable) {
+            canMerge = false;
+
+            // perform change
+            C change = changeToApply.get();
+            this.expectedChange = change;
+            performingAction.suspendWhile(() -> apply.accept(change));
+            if(this.expectedChange != null) {
+                throw new IllegalStateException("Expected change not received:\n"
+                        + this.expectedChange);
+            }
+
+            invalidateProperties();
+            return true;
+        } else {
+            return false;
         }
     }
 
