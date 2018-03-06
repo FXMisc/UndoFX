@@ -110,9 +110,9 @@ There is also a "Save" button that fakes a save operation. It is enabled only wh
 
 ### Run from the pre-built JAR
 
-[Download](https://github.com/TomasMikula/UndoFX/releases/download/v2.0.0/undofx-demos-fat-2.0.0.jar) the pre-built "fat" JAR file and run
+[Download](https://github.com/TomasMikula/UndoFX/releases/download/v2.1.0/undofx-demos-fat-2.1.0.jar) the pre-built "fat" JAR file and run
 
-    java -cp undofx-demos-fat-2.0.0.jar org.fxmisc.undo.demo.CircleProperties
+    java -cp undofx-demos-fat-2.1.0.jar org.fxmisc.undo.demo.CircleProperties
 
 ### Run from the source repo
 
@@ -142,25 +142,25 @@ Use UndoFX in your project
 
 | Group ID        | Artifact ID | Version |
 | :-------------: | :---------: | :-----: |
-| org.fxmisc.undo | undofx      | 2.0.0   |
+| org.fxmisc.undo | undofx      | 2.1.0   |
 
 ### Gradle example
 
 ```groovy
 dependencies {
-    compile group: 'org.fxmisc.undo', name: 'undofx', version: '2.0.0'
+    compile group: 'org.fxmisc.undo', name: 'undofx', version: '2.1.0'
 }
 ```
 
 ### Sbt example
 
 ```scala
-libraryDependencies += "org.fxmisc.undo" % "undofx" % "2.0.0"
+libraryDependencies += "org.fxmisc.undo" % "undofx" % "2.1.0"
 ```
 
 ### Manual download
 
-Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v2.0.0/undofx-2.0.0.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v2.0.0/undofx-fat-2.0.0.jar) and place it on your classpath.
+Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v2.1.0/undofx-2.1.0.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v2.1.0/undofx-fat-2.1.0.jar) and place it on your classpath.
 
 
 License
@@ -172,4 +172,4 @@ License
 Links
 -----
 
-[API Documentation (Javadoc)](http://fxmisc.github.io/undo/javadoc/2.0.0/org/fxmisc/undo/package-summary.html)
+[API Documentation (Javadoc)](http://fxmisc.github.io/undo/javadoc/2.1.0/org/fxmisc/undo/package-summary.html)
