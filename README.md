@@ -1,3 +1,5 @@
+**This project is no longer being maintained. See [this issue](https://github.com/FXMisc/UndoFx/issues/29) for more details.**
+
 UndoFX
 ======
 
