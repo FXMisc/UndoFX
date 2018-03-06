@@ -179,17 +179,6 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
         return nextRedo;
     }
 
-
-    @Override
-    public Val<C> nextToUndoProperty() {
-        return nextUndo;
-    }
-
-    @Override
-    public Val<C> nextToRedoProperty() {
-        return nextRedo;
-    }
-
     @Override
     public boolean isUndoAvailable() {
         return nextUndo.isPresent();
