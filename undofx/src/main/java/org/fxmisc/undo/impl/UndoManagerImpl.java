@@ -19,6 +19,12 @@ import org.reactfx.SuspendableNo;
 import org.reactfx.value.Val;
 import org.reactfx.value.ValBase;
 
+/**
+ * Implementation for {@link UndoManager} for single changes. For multiple changes, see
+ * {@link MultiChangeUndoManagerImpl}.
+ *
+ * @param <C> the type of change to undo/redo
+ */
 public class UndoManagerImpl<C> implements UndoManager<C> {
 
     private class UndoPositionImpl implements UndoPosition {
@@ -43,7 +49,8 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
 
     private final ChangeQueue<C> queue;
     private final Function<? super C, ? extends C> invert;
-    private final Consumer<C> apply;
+    private final Consumer<C> applyUndo;
+    private final Consumer<C> applyRedo;
     private final BiFunction<C, C, Optional<C>> merge;
     private final Predicate<C> isIdentity;
     private final Subscription subscription;
@@ -81,7 +88,7 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
             BiFunction<C, C, Optional<C>> merge,
             Predicate<C> isIdentity,
             EventStream<C> changeSource) {
-        this(queue, invert, apply, merge, isIdentity, changeSource, Duration.ZERO);
+        this(queue, invert, apply, apply, merge, isIdentity, changeSource);
     }
 
     public UndoManagerImpl(
@@ -92,9 +99,33 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
             Predicate<C> isIdentity,
             EventStream<C> changeSource,
             Duration preventMergeDelay) {
+        this(queue, invert, apply, apply, merge, isIdentity, changeSource, preventMergeDelay);
+    }
+
+    public UndoManagerImpl(
+            ChangeQueue<C> queue,
+            Function<? super C, ? extends C> invert,
+            Consumer<C> applyUndo,
+            Consumer<C> applyRedo,
+            BiFunction<C, C, Optional<C>> merge,
+            Predicate<C> isIdentity,
+            EventStream<C> changeSource) {
+        this(queue, invert, applyUndo, applyRedo, merge, isIdentity, changeSource, Duration.ZERO);
+    }
+
+    public UndoManagerImpl(
+            ChangeQueue<C> queue,
+            Function<? super C, ? extends C> invert,
+            Consumer<C> applyUndo,
+            Consumer<C> applyRedo,
+            BiFunction<C, C, Optional<C>> merge,
+            Predicate<C> isIdentity,
+            EventStream<C> changeSource,
+            Duration preventMergeDelay) {
         this.queue = queue;
         this.invert = invert;
-        this.apply = apply;
+        this.applyUndo = applyUndo;
+        this.applyRedo = applyRedo;
         this.merge = merge;
         this.isIdentity = isIdentity;
         this.mark = queue.getCurrentPosition();
@@ -118,7 +149,7 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
     public boolean undo() {
         if(isUndoAvailable()) {
             canMerge = false;
-            performChange(invert.apply(queue.prev()));
+            performChange(invert.apply(queue.prev()), applyUndo);
             invalidateProperties();
             return true;
         } else {
@@ -130,7 +161,7 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
     public boolean redo() {
         if(isRedoAvailable()) {
             canMerge = false;
-            performChange(queue.next());
+            performChange(queue.next(), applyRedo);
             invalidateProperties();
             return true;
         } else {
@@ -215,9 +246,9 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
         invalidateProperties();
     }
 
-    private void performChange(C change) {
+    private void performChange(C change, Consumer<C> applyChange) {
         this.expectedChange = change;
-        performingAction.suspendWhile(() -> apply.accept(change));
+        performingAction.suspendWhile(() -> applyChange.accept(change));
         if(this.expectedChange != null) {
             throw new IllegalStateException("Expected change not received:\n"
                     + this.expectedChange);
