@@ -261,19 +261,15 @@ public interface UndoManagerFactory {
      * @param invert Inverts a change, so that applying the inverted change ({@code apply.accept(invert.apply(c))})
      *               has the effect of undoing the original change ({@code c}). Inverting a change twice should
      *               result in the original change ({@code invert.apply(invert.apply(c)).equals(c)}).
-     * @param applyUndo Used to apply a list of undoable changes. From the point of view of {@code applyUndo},
-     *              {@code list} describes a list of actions to be performed. Calling {@code applyRedo.accept(list)}
-     *              <em>must</em> cause {@code list} to be emitted from {@code changeStream}.
-     * @param applyRedo Used to apply a list of redoable changes. From the point of view of {@code applyRedo},
-     *              {@code list} describes a list of actions to be performed. Calling {@code applyRedo.accept(list)}
-     *              <em>must</em> cause {@code list} to be emitted from {@code changeStream}.
+     * @param apply Used to apply a list of changes. {@code list} describes a list of actions to be performed.
+     *              Calling {@code apply.accept(list)} <em>must</em> cause {@code list} to be emitted from
+     *              the {@code changeStream}.
      */
     default <C> UndoManager<List<C>> createMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo) {
-        return createMultiChangeUM(changeStream, invert, applyUndo, applyRedo, (c1, c2) -> Optional.empty());
+            Consumer<List<C>> apply) {
+        return createMultiChangeUM(changeStream, invert, apply, (c1, c2) -> Optional.empty());
     }
 
     /**
@@ -284,22 +280,18 @@ public interface UndoManagerFactory {
      * @param invert Inverts a change, so that applying the inverted change ({@code apply.accept(invert.apply(c))})
      *               has the effect of undoing the original change ({@code c}). Inverting a change twice should
      *               result in the original change ({@code invert.apply(invert.apply(c)).equals(c)}).
-     * @param applyUndo Used to apply a list of undoable changes. From the point of view of {@code applyUndo},
-     *              {@code list} describes a list of actions to be performed. Calling {@code applyRedo.accept(list)}
-     *              <em>must</em> cause {@code list} to be emitted from {@code changeStream}.
-     * @param applyRedo Used to apply a list of redoable changes. From the point of view of {@code applyRedo},
-     *              {@code list} describes a list of actions to be performed. Calling {@code applyRedo.accept(list)}
-     *              <em>must</em> cause {@code list} to be emitted from {@code changeStream}.
+     * @param apply Used to apply a list of changes. {@code list} describes a list of actions to be performed.
+     *              Calling {@code apply.accept(list)} <em>must</em> cause {@code list} to be emitted from
+     *              the {@code changeStream}.
      * @param merge Used to merge two subsequent changes into one.
      *              Returns an empty {@linkplain Optional} when the changes cannot or should not be merged.
      */
     default <C> UndoManager<List<C>> createMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             BiFunction<C, C, Optional<C>> merge) {
-        return createMultiChangeUM(changeStream, invert, applyUndo, applyRedo, merge, c -> false);
+        return createMultiChangeUM(changeStream, invert, apply, merge, c -> false);
     }
 
     /**
@@ -310,12 +302,9 @@ public interface UndoManagerFactory {
      * @param invert Inverts a change, so that applying the inverted change ({@code apply.accept(invert.apply(c))})
      *               has the effect of undoing the original change ({@code c}). Inverting a change twice should
      *               result in the original change ({@code invert.apply(invert.apply(c)).equals(c)}).
-     * @param applyUndo Used to apply a list of undoable changes. From the point of view of {@code applyUndo},
-     *              {@code list} describes a list of actions to be performed. Calling {@code applyRedo.accept(list)}
-     *              <em>must</em> cause {@code list} to be emitted from {@code changeStream}.
-     * @param applyRedo Used to apply a list of redoable changes. From the point of view of {@code applyRedo},
-     *              {@code list} describes a list of actions to be performed. Calling {@code applyRedo.accept(list)}
-     *              <em>must</em> cause {@code list} to be emitted from {@code changeStream}.
+     * @param apply Used to apply a list of changes. {@code list} describes a list of actions to be performed.
+     *              Calling {@code apply.accept(list)} <em>must</em> cause {@code list} to be emitted from
+     *              the {@code changeStream}.
      * @param merge Used to merge two subsequent changes into one.
      *              Returns an empty {@linkplain Optional} when the changes cannot or should not be merged.
      *              If two changes "annihilate" (i.e. {@code merge.apply(c1, c2).isPresen()} and
@@ -327,11 +316,10 @@ public interface UndoManagerFactory {
     default  <C> UndoManager<List<C>> createMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             BiFunction<C, C, Optional<C>> merge,
             Predicate<C> isIdentity) {
-        return createMultiChangeUM(changeStream, invert, applyUndo, applyRedo, merge, isIdentity, Duration.ZERO);
+        return createMultiChangeUM(changeStream, invert, apply, merge, isIdentity, Duration.ZERO);
     }
 
     /**
@@ -342,12 +330,9 @@ public interface UndoManagerFactory {
      * @param invert Inverts a change, so that applying the inverted change ({@code apply.accept(invert.apply(c))})
      *               has the effect of undoing the original change ({@code c}). Inverting a change twice should
      *               result in the original change ({@code invert.apply(invert.apply(c)).equals(c)}).
-     * @param applyUndo Used to apply a list of undoable changes. From the point of view of {@code applyUndo},
-     *              {@code list} describes a list of actions to be performed. Calling {@code applyRedo.accept(list)}
-     *              <em>must</em> cause {@code list} to be emitted from {@code changeStream}.
-     * @param applyRedo Used to apply a list of redoable changes. From the point of view of {@code applyRedo},
-     *              {@code list} describes a list of actions to be performed. Calling {@code applyRedo.accept(list)}
-     *              <em>must</em> cause {@code list} to be emitted from {@code changeStream}.
+     * @param apply Used to apply a list of changes. {@code list} describes a list of actions to be performed.
+     *              Calling {@code apply.accept(list)} <em>must</em> cause {@code list} to be emitted from
+     *              the {@code changeStream}.
      * @param merge Used to merge two subsequent changes into one.
      *              Returns an empty {@linkplain Optional} when the changes cannot or should not be merged.
      *              If two changes "annihilate" (i.e. {@code merge.apply(c1, c2).isPresen()} and
@@ -363,8 +348,7 @@ public interface UndoManagerFactory {
     <C> UndoManager<List<C>> createMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             BiFunction<C, C, Optional<C>> merge,
             Predicate<C> isIdentity,
             Duration preventMergeDelay);
@@ -377,67 +361,59 @@ public interface UndoManagerFactory {
      * Creates an {@link UndoManager} with unlimited history.
      *
      * For description of parameters, see
-     * {@link #createMultiChangeUM(EventStream, Function, Consumer, Consumer, BiFunction, Predicate, Duration)}.
+     * {@link #createMultiChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration)}.
      */
     public static <C> UndoManager<List<C>> unlimitedHistoryMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo) {
-        return unlimitedHistoryMultiChangeUM(changeStream, invert, applyUndo, applyRedo,
-                (c1, c2) -> Optional.empty());
+            Consumer<List<C>> apply) {
+        return unlimitedHistoryMultiChangeUM(changeStream, invert, apply, (c1, c2) -> Optional.empty());
     }
 
     /**
      * Creates an {@link UndoManager} with unlimited history.
      *
      * For description of parameters, see
-     * {@link #createMultiChangeUM(EventStream, Function, Consumer, Consumer, BiFunction, Predicate, Duration)}.
+     * {@link #createMultiChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration)}.
      */
     public static <C> UndoManager<List<C>> unlimitedHistoryMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             BiFunction<C, C, Optional<C>> merge) {
-        return unlimitedHistoryMultiChangeUM(changeStream, invert, applyUndo, applyRedo,
-                merge, c -> false, Duration.ZERO);
+        return unlimitedHistoryMultiChangeUM(changeStream, invert, apply, merge, c -> false, Duration.ZERO);
     }
 
     /**
      * Creates an {@link UndoManager} with unlimited history.
      *
      * For description of parameters, see
-     * {@link #createMultiChangeUM(EventStream, Function, Consumer, Consumer, BiFunction, Predicate, Duration)}.
+     * {@link #createMultiChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration)}.
      */
     public static <C> UndoManager<List<C>> unlimitedHistoryMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             BiFunction<C, C, Optional<C>> merge,
             Predicate<C> isIdentity) {
-        return unlimitedHistoryMultiChangeUM(changeStream, invert, applyUndo, applyRedo,
-                merge, isIdentity, Duration.ZERO);
+        return unlimitedHistoryMultiChangeUM(changeStream, invert, apply, merge, isIdentity, Duration.ZERO);
     }
 
     /**
      * Creates an {@link UndoManager} with unlimited history.
      *
      * For description of parameters, see
-     * {@link #createMultiChangeUM(EventStream, Function, Consumer, Consumer, BiFunction, Predicate, Duration)}.
+     * {@link #createMultiChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration)}.
      */
     public static <C> UndoManager<List<C>> unlimitedHistoryMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             BiFunction<C, C, Optional<C>> merge,
             Predicate<C> isIdentity,
             Duration preventMergeDelay) {
         ChangeQueue<List<C>> queue = new UnlimitedChangeQueue<>();
-        return new MultiChangeUndoManagerImpl<>(queue, invert, applyUndo, applyRedo,
-                merge, isIdentity, changeStream, preventMergeDelay);
+        return new MultiChangeUndoManagerImpl<>(queue, invert, apply, merge, isIdentity, changeStream, preventMergeDelay);
     }
 
     /**
@@ -445,18 +421,16 @@ public interface UndoManagerFactory {
      * When at full capacity, a new change will cause the oldest change to be forgotten.
      *
      * <p>For description of the remaining parameters, see
-     * {@link #createMultiChangeUM(EventStream, Function, Consumer, Consumer, BiFunction, Predicate, Duration)}.</p>
+     * {@link #createMultiChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration)}.</p>
      *
      * @param capacity maximum number of changes the returned UndoManager can store
      */
     public static <C> UndoManager<List<C>> fixedSizeHistoryMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             int capacity) {
-        return fixedSizeHistoryMultiChangeUM(changeStream, invert, applyUndo, applyRedo,
-                (c1, c2) -> Optional.empty(), capacity);
+        return fixedSizeHistoryMultiChangeUM(changeStream, invert, apply, (c1, c2) -> Optional.empty(), capacity);
     }
 
     /**
@@ -464,19 +438,17 @@ public interface UndoManagerFactory {
      * When at full capacity, a new change will cause the oldest change to be forgotten.
      *
      * <p>For description of the remaining parameters, see
-     * {@link #createMultiChangeUM(EventStream, Function, Consumer, Consumer, BiFunction, Predicate, Duration)}.</p>
+     * {@link #createMultiChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration)}.</p>
      *
      * @param capacity maximum number of changes the returned UndoManager can store
      */
     public static <C> UndoManager<List<C>> fixedSizeHistoryMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             BiFunction<C, C, Optional<C>> merge,
             int capacity) {
-        return fixedSizeHistoryMultiChangeUM(changeStream, invert, applyUndo, applyRedo,
-                merge, c -> false, Duration.ZERO, capacity);
+        return fixedSizeHistoryMultiChangeUM(changeStream, invert, apply, merge, c -> false, Duration.ZERO, capacity);
     }
 
     /**
@@ -484,22 +456,20 @@ public interface UndoManagerFactory {
      * When at full capacity, a new change will cause the oldest change to be forgotten.
      *
      * <p>For description of the remaining parameters, see
-     * {@link #createMultiChangeUM(EventStream, Function, Consumer, Consumer, BiFunction, Predicate, Duration)}.</p>
+     * {@link #createMultiChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration)}.</p>
      *
      * @param capacity maximum number of changes the returned UndoManager can store
      */
     public static <C> UndoManager<List<C>> fixedSizeHistoryMultiChangeUM(
             EventStream<List<C>> changeStream,
             Function<? super C, ? extends C> invert,
-            Consumer<List<C>> applyUndo,
-            Consumer<List<C>> applyRedo,
+            Consumer<List<C>> apply,
             BiFunction<C, C, Optional<C>> merge,
             Predicate<C> isIdentity,
             Duration preventMergeDelay,
             int capacity) {
         ChangeQueue<List<C>> queue = new FixedSizeChangeQueue<>(capacity);
-        return new MultiChangeUndoManagerImpl<>(queue, invert, applyUndo, applyRedo,
-                merge, isIdentity, changeStream, preventMergeDelay);
+        return new MultiChangeUndoManagerImpl<>(queue, invert, apply, merge, isIdentity, changeStream, preventMergeDelay);
     }
 
     /**
@@ -513,7 +483,7 @@ public interface UndoManagerFactory {
     public static <C> UndoManager<List<C>> zeroHistoryMultiChangeUM(EventStream<List<C>> changeStream) {
         ChangeQueue<List<C>> queue = new ZeroSizeChangeQueue<>();
         Consumer<List<C>> doNothingForUndoAndRedo = c -> {};
-        return new MultiChangeUndoManagerImpl<>(queue, c -> c, doNothingForUndoAndRedo, doNothingForUndoAndRedo,
+        return new MultiChangeUndoManagerImpl<>(queue, c -> c, doNothingForUndoAndRedo,
                 (c1, c2) -> Optional.empty(), c -> false, changeStream);
     }
 
@@ -525,7 +495,7 @@ public interface UndoManagerFactory {
      * Creates a factory for {@link UndoManager}s with unlimited history.
      *
      * @see #unlimitedHistorySingleChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration)
-     * @see #unlimitedHistoryMultiChangeUM(EventStream, Function, Consumer, Consumer, BiFunction, Predicate, Duration)
+     * @see #unlimitedHistoryMultiChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration)
      */
     public static UndoManagerFactory unlimitedHistoryFactory() {
         return new UndoManagerFactory() {
@@ -544,13 +514,11 @@ public interface UndoManagerFactory {
             public <C> UndoManager<List<C>> createMultiChangeUM(
                     EventStream<List<C>> changeStream,
                     Function<? super C, ? extends C> invert,
-                    Consumer<List<C>> applyUndo,
-                    Consumer<List<C>> applyRedo,
+                    Consumer<List<C>> apply,
                     BiFunction<C, C, Optional<C>> merge,
                     Predicate<C> isIdentity,
                     Duration preventMergeDelay) {
-                return unlimitedHistoryMultiChangeUM(changeStream, invert, applyUndo, applyRedo,
-                        merge, isIdentity, preventMergeDelay);
+                return unlimitedHistoryMultiChangeUM(changeStream, invert, apply, merge, isIdentity, preventMergeDelay);
             }
         };
     }
@@ -560,7 +528,7 @@ public interface UndoManagerFactory {
      * When at full capacity, a new change will cause the oldest change to be forgotten.
      *
      * @see #fixedSizeHistorySingleChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration, int)
-     * @see #fixedSizeHistoryMultiChangeUM(EventStream, Function, Consumer, Consumer, BiFunction, Predicate, Duration, int)
+     * @see #fixedSizeHistoryMultiChangeUM(EventStream, Function, Consumer, BiFunction, Predicate, Duration, int)
      */
     public static UndoManagerFactory fixedSizeHistoryFactory(int capacity) {
         return new UndoManagerFactory() {
@@ -579,13 +547,11 @@ public interface UndoManagerFactory {
             public <C> UndoManager<List<C>> createMultiChangeUM(
                     EventStream<List<C>> changeStream,
                     Function<? super C, ? extends C> invert,
-                    Consumer<List<C>> applyUndo,
-                    Consumer<List<C>> applyRedo,
+                    Consumer<List<C>> apply,
                     BiFunction<C, C, Optional<C>> merge,
                     Predicate<C> isIdentity,
                     Duration preventMergeDelay) {
-                return fixedSizeHistoryMultiChangeUM(changeStream, invert, applyUndo, applyRedo,
-                        merge, isIdentity, preventMergeDelay, capacity);
+                return fixedSizeHistoryMultiChangeUM(changeStream, invert, apply, merge, isIdentity, preventMergeDelay, capacity);
             }
         };
     }
@@ -613,8 +579,7 @@ public interface UndoManagerFactory {
             public <C> UndoManager<List<C>> createMultiChangeUM(
                     EventStream<List<C>> changeStream,
                     Function<? super C, ? extends C> invert,
-                    Consumer<List<C>> applyUndo,
-                    Consumer<List<C>> applyRedo,
+                    Consumer<List<C>> apply,
                     BiFunction<C, C, Optional<C>> merge,
                     Predicate<C> isIdentity,
                     Duration preventMergeDelay) {

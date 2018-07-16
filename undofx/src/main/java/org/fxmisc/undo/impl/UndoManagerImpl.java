@@ -6,6 +6,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
@@ -49,8 +50,7 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
 
     private final ChangeQueue<C> queue;
     private final Function<? super C, ? extends C> invert;
-    private final Consumer<C> applyUndo;
-    private final Consumer<C> applyRedo;
+    private final Consumer<C> apply;
     private final BiFunction<C, C, Optional<C>> merge;
     private final Predicate<C> isIdentity;
     private final Subscription subscription;
@@ -88,7 +88,7 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
             BiFunction<C, C, Optional<C>> merge,
             Predicate<C> isIdentity,
             EventStream<C> changeSource) {
-        this(queue, invert, apply, apply, merge, isIdentity, changeSource);
+        this(queue, invert, apply, merge, isIdentity, changeSource, Duration.ZERO);
     }
 
     public UndoManagerImpl(
@@ -99,33 +99,9 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
             Predicate<C> isIdentity,
             EventStream<C> changeSource,
             Duration preventMergeDelay) {
-        this(queue, invert, apply, apply, merge, isIdentity, changeSource, preventMergeDelay);
-    }
-
-    public UndoManagerImpl(
-            ChangeQueue<C> queue,
-            Function<? super C, ? extends C> invert,
-            Consumer<C> applyUndo,
-            Consumer<C> applyRedo,
-            BiFunction<C, C, Optional<C>> merge,
-            Predicate<C> isIdentity,
-            EventStream<C> changeSource) {
-        this(queue, invert, applyUndo, applyRedo, merge, isIdentity, changeSource, Duration.ZERO);
-    }
-
-    public UndoManagerImpl(
-            ChangeQueue<C> queue,
-            Function<? super C, ? extends C> invert,
-            Consumer<C> applyUndo,
-            Consumer<C> applyRedo,
-            BiFunction<C, C, Optional<C>> merge,
-            Predicate<C> isIdentity,
-            EventStream<C> changeSource,
-            Duration preventMergeDelay) {
         this.queue = queue;
         this.invert = invert;
-        this.applyUndo = applyUndo;
-        this.applyRedo = applyRedo;
+        this.apply = apply;
         this.merge = merge;
         this.isIdentity = isIdentity;
         this.mark = queue.getCurrentPosition();
@@ -147,26 +123,12 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
 
     @Override
     public boolean undo() {
-        if(isUndoAvailable()) {
-            canMerge = false;
-            performChange(invert.apply(queue.prev()), applyUndo);
-            invalidateProperties();
-            return true;
-        } else {
-            return false;
-        }
+        return applyChange(isUndoAvailable(), () -> invert.apply(queue.prev()));
     }
 
     @Override
     public boolean redo() {
-        if(isRedoAvailable()) {
-            canMerge = false;
-            performChange(queue.next(), applyRedo);
-            invalidateProperties();
-            return true;
-        } else {
-            return false;
-        }
+        return applyChange(isRedoAvailable(), queue::next);
     }
 
     @Override
@@ -235,12 +197,29 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
         invalidateProperties();
     }
 
-    private void performChange(C change, Consumer<C> applyChange) {
-        this.expectedChange = change;
-        performingAction.suspendWhile(() -> applyChange.accept(change));
-        if(this.expectedChange != null) {
-            throw new IllegalStateException("Expected change not received:\n"
-                    + this.expectedChange);
+    /**
+     * Helper method for reducing code duplication
+     *
+     * @param isChangeAvailable same as `isUndoAvailable()` [Undo] or `isRedoAvailable()` [Redo]
+     * @param changeToApply same as `invert.apply(queue.prev())` [Undo] or `queue.next()` [Redo]
+     */
+    private boolean applyChange(boolean isChangeAvailable, Supplier<C> changeToApply) {
+        if (isChangeAvailable) {
+            canMerge = false;
+
+            // perform change
+            C change = changeToApply.get();
+            this.expectedChange = change;
+            performingAction.suspendWhile(() -> apply.accept(change));
+            if(this.expectedChange != null) {
+                throw new IllegalStateException("Expected change not received:\n"
+                        + this.expectedChange);
+            }
+
+            invalidateProperties();
+            return true;
+        } else {
+            return false;
         }
     }
 
