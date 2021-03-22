@@ -8,6 +8,14 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '[4.0,)'
 }
 
+jar {
+    manifest {
+        attributes(
+            'Automatic-Module-Name': 'org.fxmisc.undo'
+        )
+    }
+}
+
 javadoc {
     // ignore missing Javadoc comments or tags
     options.addStringOption('Xdoclint:all,-missing', '-quiet')
