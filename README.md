@@ -1,5 +1,3 @@
-**This project is no longer being maintained. See [this issue](https://github.com/FXMisc/UndoFx/issues/29) for more details.**
-
 UndoFX
 ======
 
@@ -144,25 +142,25 @@ Use UndoFX in your project
 
 | Group ID        | Artifact ID | Version |
 | :-------------: | :---------: | :-----: |
-| org.fxmisc.undo | undofx      | 2.1.0   |
+| org.fxmisc.undo | undofx      | 2.1.1   |
 
 ### Gradle example
 
 ```groovy
 dependencies {
-    compile group: 'org.fxmisc.undo', name: 'undofx', version: '2.1.0'
+    compile group: 'org.fxmisc.undo', name: 'undofx', version: '2.1.1'
 }
 ```
 
 ### Sbt example
 
 ```scala
-libraryDependencies += "org.fxmisc.undo" % "undofx" % "2.1.0"
+libraryDependencies += "org.fxmisc.undo" % "undofx" % "2.1.1"
 ```
 
 ### Manual download
 
-Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v2.1.0/undofx-2.1.0.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v2.1.0/undofx-fat-2.1.0.jar) and place it on your classpath.
+Download [the JAR file](https://github.com/TomasMikula/UndoFX/releases/download/v2.1.1/undofx-2.1.1.jar) or [the fat JAR file (including dependencies)](https://github.com/TomasMikula/UndoFX/releases/download/v2.1.1/undofx-fat-2.1.1.jar) and place it on your classpath.
 
 
 License
