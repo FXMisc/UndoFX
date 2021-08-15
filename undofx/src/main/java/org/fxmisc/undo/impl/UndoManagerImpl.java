@@ -202,8 +202,9 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
      *
      * @param isChangeAvailable same as `isUndoAvailable()` [Undo] or `isRedoAvailable()` [Redo]
      * @param changeToApply same as `invert.apply(queue.prev())` [Undo] or `queue.next()` [Redo]
+     * @throws IllegalStateException if the applied change was not reinserted into the event stream
      */
-    private boolean applyChange(boolean isChangeAvailable, Supplier<C> changeToApply) {
+    private boolean applyChange(boolean isChangeAvailable, Supplier<C> changeToApply) throws IllegalStateException {
         if (isChangeAvailable) {
             canMerge = false;
 
@@ -213,7 +214,8 @@ public class UndoManagerImpl<C> implements UndoManager<C> {
             performingAction.suspendWhile(() -> apply.accept(change));
             if(this.expectedChange != null) {
                 throw new IllegalStateException("Expected change not received:\n"
-                        + this.expectedChange);
+                        + this.expectedChange
+			+ "\nThe most likely cause is that the apply action did not reinsert the change into the event stream.");
             }
 
             invalidateProperties();

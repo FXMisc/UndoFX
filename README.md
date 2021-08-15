@@ -74,10 +74,10 @@ Getting an `UndoManager` instance
 ---------------------------------
 
 To get an instance of `UndoManager` you need:
- * a **stream of change events**;
- * a function to **invert** a change;
- * a function to **apply** a change; and
- * optionally, a function to optionally **merge** two subsequent changes into a single change.
+ * a **stream of change events**.
+ * a function to **invert** a change.
+ * a function to **apply** a change. This function must reinsert its parameter into the stream of change events.
+ * optionally, a function to **merge** two subsequent changes into a single change. The first parameter is the old change, and the second parameter is the newer change.
 
 The _stream of change events_ is a [ReactFX](http://www.reactfx.org/) `EventStream`. For an example of how you can construct one, have a look at the source code of the [demo below](#demo).
 
